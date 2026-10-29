@@ -4,8 +4,8 @@
   "private": true,
   "description": "密度小艇：密度應用遊戲與關卡編輯器",
   "scripts": {
-    "build": "node scripts/build-site.cjs",
-    "test": "node tests/site.cjs"
+    "build": "node scripts/build-site.cjs && node scripts/build-google.cjs",
+    "test": "node tests/site.cjs && node tests/cloud.cjs && node tests/clearance.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

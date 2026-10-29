@@ -5,6 +5,7 @@
 !.gitattributes
 !.nojekyll
 !README.md
+!PROJECT.md
 !index.html
 !config.json
 !package.json

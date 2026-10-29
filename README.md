@@ -2,6 +2,8 @@
 
 用 **D＝M／V** 解謎的密度應用遊戲，附地圖編輯、試玩、JSON 匯入／匯出與五個示範關卡。通道設計至少保留 2 格，重點放在密度與質量取捨。
 
+正式版本、來源與部署分工見 [PROJECT.md](PROJECT.md)。共同來源為 `src/editor.html`，已納入 v2 的通道對齊修正。網站與 Google 部署檔都由此來源建置。
+
 遊戲網址：https://wedcher.github.io/density-submarine/
 
 ## 使用
@@ -32,7 +34,8 @@ git pull --ff-only
 修改遊戲來源 `src/editor.html`，需要時修改 `scripts/build-site.cjs` 的網站功能，然後：
 
 ```sh
-node scripts/build-site.cjs
+npm run build
+npm test
 git add .
 git commit -m "更新密度小艇"
 git push

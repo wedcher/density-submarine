@@ -108,7 +108,7 @@ const densityStyles={
  '3':   {bg:'#e8c2c8',dot:'#873f52'}
 };
 
- 
+
 const CELL=40,COLS=25,ROWS=14,WIDTH=1000,HEIGHT=560;
 const layerDefs=[{d:.25,top:40,bottom:160},{d:.5,top:160,bottom:280},{d:1,top:280,bottom:400},{d:2,top:400,bottom:520}];
 const $=id=>document.getElementById(id);
@@ -154,8 +154,31 @@ function active(){return mode==='play'&&state&&!state.won}
 function step(dx,dy){const steps=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)));for(let i=0;i<steps;i++){const x=state.x+dx/steps,y=state.y+dy/steps;if(blocked(x,y))break;state.x=x;state.y=y;const before=D();collect();if(state.won||D()!==before)break}}
 function finish(){if(goalPos&&overlap(state.x,state.y,size(state.v).w,goalPos.x,goalPos.y,40)){state.won=true;msg.textContent='過關！可回編輯繼續修改地圖。'}}
 function collect(){for(const it of items){if(it.taken||it.type==='door'||!overlap(state.x,state.y,size(state.v).w,it.x,it.y,40))continue;if(it.type==='key'){it.taken=true;state.key=true;msg.textContent='已取得鑰匙，所有門都已開啟。'}else if(state.m<3&&changeStats(state.m+1,state.v)){it.taken=true}drawWorld()}finish()}
-function moveX(dx){if(!active())return;step(dx,0);collect();render()}
-function moveY(dir){if(!active())return;const [lo,hi]=bounds(D());if(lo===hi||state.y<lo||state.y>hi)return;step(0,Math.max(lo,Math.min(hi,state.y+dir*16))-state.y);collect();render()}
+// A one-cell opening must remain reachable with 24/16 px button increments.
+// Correct only a small perpendicular offset; test both swept paths, never shrink the hull.
+function clearPath(x,y,dx,dy){
+ const n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)));
+ for(let i=1;i<=n;i++)if(blocked(x+dx*i/n,y+dy*i/n))return false;
+ return true;
+}
+function moveThroughOpening(dx,dy){
+ const start={x:state.x,y:state.y,d:D()},horizontal=dx!==0;
+ step(dx,dy);
+ if(state.won||D()!==start.d)return;
+ const remaining=horizontal?start.x+dx-state.x:start.y+dy-state.y;
+ if(Math.abs(remaining)<1e-8)return;
+ const [lo,hi]=bounds(D()),limit=horizontal?8:12;
+ for(let offset=1;offset<=limit;offset++)for(const sign of [-1,1]){
+  const ax=horizontal?0:offset*sign,ay=horizontal?offset*sign:0;
+  const x=state.x+ax,y=state.y+ay,rx=horizontal?remaining:0,ry=horizontal?0:remaining;
+  if(y<lo||y>hi||!clearPath(state.x,state.y,ax,ay)||!clearPath(x,y,rx,ry))continue;
+  step(ax,ay);
+  if(!state.won&&D()===start.d)step(rx,ry);
+  return;
+ }
+}
+function moveX(dx){if(!active())return;moveThroughOpening(dx,0);collect();render()}
+function moveY(dir){if(!active())return;const [lo,hi]=bounds(D());if(lo===hi||state.y<lo||state.y>hi)return;moveThroughOpening(0,Math.max(lo,Math.min(hi,state.y+dir*16))-state.y);collect();render()}
 function buoy(){if(!active())return;const [lo,hi]=bounds(D()),target=Math.max(lo,Math.min(hi,state.y));step(0,Math.sign(target-state.y)*Math.min(6,Math.abs(target-state.y)));collect();render()}
 function changeV(up){if(!active())return;const vals=[1,2,4],v=vals[vals.indexOf(state.v)+(up?1:-1)];if(v)changeStats(state.m,v)}
 function dropM(){if(active()&&state.m>1)changeStats(state.m-1,state.v)}

@@ -1,0 +1,330 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google 遊戲更新｜只需更新 Index</title><style>body{font:18px/1.8 "Microsoft JhengHei",sans-serif;background:#f3f0e8;color:#243139;margin:0}main{max-width:780px;margin:24px auto;padding:24px;background:#fffdfa;border-radius:14px}button{font:inherit;background:#ffdf83;padding:12px;border-radius:8px;cursor:pointer}textarea{width:100%;box-sizing:border-box}li{margin:12px 0}</style><main><h1>更新 Google 的完整遊戲</h1><p>你已建立收件程式並授權。這一步把目前空白的 Google 遊戲頁換成正式版，包含通道對齊修正。</p><button id="copy">複製完整遊戲 HTML</button><p id="status" role="status"></p><ol><li>按上方按鈕。</li><li>開啟 <a href="https://script.google.com/home" target="_blank" rel="noopener">Google Apps Script</a>，選「密度小艇投稿」專案。</li><li>左側點 <b>Index.html</b>，在程式編輯區按 Ctrl+A，再按 Ctrl+V。貼入後應有數百行，能找到「密度小艇」與 clearPath。</li><li>按 Ctrl+S 儲存。保留「程式碼.gs」裡已設定的資料夾 ID。</li><li>右上角「部署 → 管理部署作業 → 鉛筆編輯 → 版本選新版本 → 部署」。完成後原本 /exec 網址不變。</li><li>用未登入的無痕視窗開原本 /exec 網址，確認出現完整遊戲。匯入一份關卡、填暱稱投稿，再確認雲端資料夾收到 JSON。</li></ol><p>看到遊戲畫面後先回來告訴我，我會協助確認線上 HTML 確實是這版。Google 實際收件仍須最後一步驗收。</p><details><summary>若無法自動複製，展開並全選下方文字</summary><textarea id="payload" rows="12" readonly>&lt;!doctype html&gt;
+&lt;html lang="zh-Hant"&gt;
+&lt;head&gt;
+&lt;base target="_top"&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;title&gt;密度小艇｜地圖編輯器 v2&lt;/title&gt;
+&lt;style&gt;
+:root{--ink:#243139;--paper:#f3f0e8;--rock1:#716557;--rock2:#4f473e;--l025:#e1f6ef;--l050:#d7ecf6;--l100:#e6def4;--l200:#f1d5dc}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
+.wrap{width:1050px;max-width:calc(100vw - 24px);margin:16px auto}
+.header{display:flex;justify-content:space-between;gap:14px;align-items:end;flex-wrap:wrap}h1{margin:0;font-size:24px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}button{border:2px solid var(--ink);background:white;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-bottom:10px}
+.levelGrid button{padding:6px 3px;font-size:12px;min-width:0}
+.hud{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 13px;background:#fffdfa;border:2px solid #d7d0c5;border-radius:13px;margin-bottom:9px;font-weight:800}
+.massDots{letter-spacing:5px;font-size:21px}.stageWrap{overflow:auto}
+#stage{position:relative;width:1000px;height:600px;overflow:hidden;border:3px solid var(--ink);border-radius:16px;background:white}
+.layer{position:absolute;left:0;width:1000px;height:130px;overflow:hidden}.layer .dots{position:absolute;inset:0;opacity:.48}.layer .tag{position:absolute;left:14px;top:9px;font-weight:900;z-index:2}
+#L025{top:40px;background:var(--l025)}#L050{top:170px;background:var(--l050)}#L100{top:300px;background:var(--l100)}#L200{top:430px;background:var(--l200)}
+.rock{position:absolute;z-index:5;background:radial-gradient(circle at 16px 13px,#918370 0 3px,transparent 3.5px) 0 0/40px 29px,linear-gradient(var(--rock1),var(--rock2));border:2px solid #403a34;border-radius:6px}
+#goal{position:absolute;width:58px;height:68px;z-index:8}.flagpole{position:absolute;left:10px;top:0;width:4px;height:60px;background:var(--ink)}.flag{position:absolute;left:14px;top:1px;width:34px;height:23px;background:#efc94d;clip-path:polygon(0 0,100% 50%,0 100%)}.goalbase{position:absolute;left:2px;bottom:0;width:20px;height:10px;border:3px solid var(--ink);border-radius:50%;background:white}
+.item{position:absolute;z-index:9;width:44px;height:44px;border:3px solid var(--ink);border-radius:11px;background:#f4d565;display:flex;align-items:center;justify-content:center;font-weight:900}
+#boat{position:absolute;z-index:20;transform:translate(-50%,-50%);transition:left .08s linear,top .08s linear,width .12s ease,height .12s ease}.hull{position:absolute;inset:0;border:4px solid var(--ink);border-radius:14px;overflow:hidden}.hullDots{position:absolute;inset:0}
+.formulaCard{position:absolute;z-index:30;left:50%;bottom:calc(100% + 10px);width:286px;height:92px;transform:translateX(-50%);border:2px solid rgba(38,50,58,.25);border-radius:14px;background:rgba(255,255,255,.80);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;gap:12px;font-family:Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums}.lhs,.eq{font-size:34px;font-weight:700}.frac{display:grid;grid-template-rows:auto 4px auto;justify-items:center;min-width:114px}.num,.den{font-size:31px;font-weight:700;line-height:1.02}.bar{width:100%;height:4px;background:#172229}
+.periscope{position:absolute;z-index:22;left:50%;top:-13px;width:14px;height:15px;border-left:4px solid var(--ink);border-top:4px solid var(--ink);border-radius:6px 0 0 0}.propeller{position:absolute;z-index:22;left:-15px;top:50%;width:13px;height:4px;background:var(--ink)}
+.massDrop{position:absolute;z-index:40;width:16px;height:16px;border-radius:50%;background:#202020;animation:fall .55s ease-in forwards}@keyframes fall{to{opacity:0;transform:translateY(58px) scale(.65)}}
+.controls{margin-top:11px;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;background:#fffdfa;border:2px solid #d7d0c5;border-radius:14px;padding:10px}.group{display:flex;gap:7px;flex-wrap:wrap}.group.right{justify-content:flex-end}.move{font-size:19px;min-width:45px}
+.readout{text-align:center;min-width:260px}.readout b{font-size:18px}.sub{font-size:13px;opacity:.72;margin-top:3px}.msg{text-align:center;min-height:25px;font-weight:800;margin-top:8px}
+.answer{margin-top:8px;padding:10px 12px;background:#fffdfa;border:2px dashed #bfb6a8;border-radius:12px;display:none;font-weight:700}
+.note{font-size:12px;opacity:.68;text-align:center;margin-top:4px}
+@media(max-width:760px){.levelGrid{grid-template-columns:repeat(5,1fr)}.controls{grid-template-columns:1fr}.group,.group.right{justify-content:center}.readout{order:-1}}
+
+#stage{width:1000px;height:560px;border:0;border-radius:0;transform-origin:top left;touch-action:none}
+.stageWrap{width:1000px;max-width:100%;margin:auto;overflow:hidden;outline:3px solid var(--ink);border-radius:8px}
+.layer{height:120px}#L025{top:40px}#L050{top:160px}#L100{top:280px}#L200{top:400px}
+#stage.editing{cursor:crosshair}#stage.editing:after{content:"";position:absolute;inset:0;z-index:40;pointer-events:none;background:linear-gradient(to right,#24313930 1px,transparent 1px),linear-gradient(to bottom,#24313930 1px,transparent 1px);background-size:40px 40px}
+#boat{transition:none}.formulaCard{width:230px;height:64px;gap:7px;bottom:calc(100% + 4px)}.lhs,.eq{font-size:24px}.num,.den{font-size:22px}.frac{min-width:70px}.periscope,.propeller{display:none}
+.item{width:40px;height:40px;border-radius:6px}.item.door{background:#997352;color:white}.item.open{opacity:.25;border-style:dashed}.item.key{background:#ffe795}
+#goal{width:40px;height:40px}.flagpole{height:35px}.goalbase{height:7px}.controls button:disabled{opacity:.4;cursor:default}
+#doodleCanvas{position:absolute;inset:0;z-index:50;pointer-events:none;width:1000px;height:560px}
+#doodleCanvas.drawing{pointer-events:auto;cursor:crosshair;touch-action:none}
+#stage.half-grid:after{background-size:40px 20px}
+.toolbar label{align-self:center;font-size:14px}
+.compact-toolbar{gap:6px;align-items:center;margin:7px 0}.compact-toolbar button{flex-shrink:0;white-space:nowrap;padding:8px 10px}
+.tool-group{display:contents}.toolbar-hint{font-size:12px;white-space:nowrap;opacity:.75}
+.level-name{display:flex;align-items:center;white-space:nowrap;gap:4px}
+#levelName{width:190px;max-width:55vw;min-width:120px;padding:7px 9px;border:2px solid #bfb6a8;border-radius:8px;font:inherit;background:#fff}
+#modeLabel{font-size:13px;white-space:nowrap}
+
+#submitBtn{background:#ffdf83}
+#submissionDialog{width:520px;max-width:calc(100vw - 24px);max-height:90vh;overflow:auto;border:2px solid var(--ink);border-radius:14px;padding:22px;background:#fffdfa;color:var(--ink)}
+#submissionDialog::backdrop{background:#14212a88}#submissionDialog h2{margin:0 0 10px}#submissionDialog p{line-height:1.6;font-size:14px}
+#submissionForm&gt;label{display:block;margin:12px 0;font-weight:bold}#submissionAuthor,#submissionNote{display:block;width:100%;margin-top:5px;padding:9px;border:1px solid #a59b8c;border-radius:7px;font:inherit}
+#submissionForm .submission-consent{font-size:14px;font-weight:normal;line-height:1.6}.submission-actions{display:flex;justify-content:flex-end;gap:8px}.submission-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}#submissionStatus{white-space:pre-wrap;overflow-wrap:anywhere}#submissionSend:disabled{opacity:.5;cursor:wait}
+
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="wrap"&gt;
+&lt;div class="header"&gt;&lt;h1&gt;密度小艇｜地圖編輯器 v2&lt;/h1&gt;&lt;div&gt;先選工具，再點格子放置；岩石與橡皮擦可拖曳&lt;/div&gt;&lt;/div&gt;
+&lt;div class="toolbar compact-toolbar" id="materialRow"&gt;
+&lt;div id="tools" class="tool-group" aria-label="正式關卡工具"&gt;&lt;/div&gt;
+&lt;div id="doodleTools" class="tool-group" aria-label="規畫塗鴉工具"&gt;&lt;button id="doodlePen"&gt;塗鴉筆&lt;/button&gt;&lt;button id="doodleErase"&gt;塗鴉橡皮擦&lt;/button&gt;&lt;button id="doodleClear"&gt;清空塗鴉&lt;/button&gt;&lt;span class="toolbar-hint"&gt;塗鴉不匯出，試玩時暫時隱藏。&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="toolbar compact-toolbar" id="levelRow"&gt;
+&lt;label class="level-name"&gt;關卡名稱：&lt;input id="levelName" type="text" maxlength="120" placeholder="未命名關卡" autocomplete="off"&gt;&lt;/label&gt;
+&lt;button id="submitBtn"&gt;投稿關卡&lt;/button&gt;&lt;button id="exportBtn"&gt;匯出關卡&lt;/button&gt;&lt;button id="importBtn"&gt;匯入關卡&lt;/button&gt;&lt;input id="importFile" type="file" accept=".json,application/json" hidden&gt;
+&lt;button id="clearBtn"&gt;清空&lt;/button&gt;&lt;button id="modeBtn"&gt;試玩&lt;/button&gt;&lt;button id="restartBtn" hidden&gt;重新試玩&lt;/button&gt;&lt;span id="modeLabel"&gt;編輯模式｜每格 40 × 40&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="hud"&gt;&lt;div&gt;質量 M：&lt;span class="massDots" id="massDots"&gt;&lt;/span&gt;&lt;/div&gt;&lt;div id="hudStatus"&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class="stageWrap"&gt;&lt;div id="stage"&gt;
+&lt;div class="layer" id="L025"&gt;&lt;div class="dots"&gt;&lt;/div&gt;&lt;div class="tag"&gt;D = 0.25&lt;/div&gt;&lt;/div&gt;
+&lt;div class="layer" id="L050"&gt;&lt;div class="dots"&gt;&lt;/div&gt;&lt;div class="tag"&gt;D = 0.5&lt;/div&gt;&lt;/div&gt;
+&lt;div class="layer" id="L100"&gt;&lt;div class="dots"&gt;&lt;/div&gt;&lt;div class="tag"&gt;D = 1&lt;/div&gt;&lt;/div&gt;
+&lt;div class="layer" id="L200"&gt;&lt;div class="dots"&gt;&lt;/div&gt;&lt;div class="tag"&gt;D = 2&lt;/div&gt;&lt;/div&gt;
+&lt;canvas id="doodleCanvas" width="1000" height="560" aria-label="規畫塗鴉圖層"&gt;&lt;/canvas&gt;
+&lt;div id="rockLayer"&gt;&lt;/div&gt;&lt;div id="itemLayer"&gt;&lt;/div&gt;
+&lt;div id="goal"&gt;&lt;div class="flagpole"&gt;&lt;/div&gt;&lt;div class="flag"&gt;&lt;/div&gt;&lt;div class="goalbase"&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div id="boat"&gt;&lt;div class="formulaCard"&gt;&lt;span class="lhs" id="fD"&gt;&lt;/span&gt;&lt;span class="eq"&gt;=&lt;/span&gt;&lt;span class="frac"&gt;&lt;span class="num" id="fM"&gt;&lt;/span&gt;&lt;span class="bar"&gt;&lt;/span&gt;&lt;span class="den" id="fV"&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class="periscope"&gt;&lt;/div&gt;&lt;div class="propeller"&gt;&lt;/div&gt;&lt;div class="hull"&gt;&lt;div class="hullDots"&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/div&gt;
+&lt;div class="controls"&gt;
+&lt;div class="group"&gt;&lt;button class="move" id="left"&gt;←&lt;/button&gt;&lt;button class="move" id="up"&gt;↑&lt;/button&gt;&lt;button class="move" id="down"&gt;↓&lt;/button&gt;&lt;button class="move" id="right"&gt;→&lt;/button&gt;&lt;/div&gt;
+&lt;div class="readout"&gt;&lt;b id="densityText"&gt;&lt;/b&gt;&lt;div class="sub" id="stateText"&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class="group right"&gt;&lt;button id="vPlus"&gt;V＋&lt;/button&gt;&lt;button id="vMinus"&gt;V－&lt;/button&gt;&lt;button id="mMinus"&gt;丟 M&lt;/button&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="msg" id="msg"&gt;&lt;/div&gt;&lt;div class="answer" id="answer"&gt;&lt;/div&gt;
+&lt;div class="note"&gt;← → 移動；↑ ↓ 在相同密度層內移動；Num ＋／－ 改 V；Num ＊ 丟 M。直向入口至少 2 格寬。新關卡初始 M=1、V=1，匯入時沿用檔案設定。半格岩石為 1 格寬 × 0.5 格高，依點擊位置對齊上／下半格；小艇仍需 1 格高的通道。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;dialog id="submissionDialog" aria-labelledby="submissionTitle"&gt;
+ &lt;form id="submissionForm"&gt;
+  &lt;h2 id="submissionTitle"&gt;投稿關卡&lt;/h2&gt;
+  &lt;p&gt;將目前關卡送給老師，不需登入。也可以先匯入已匯出的 JSON 再投稿。&lt;/p&gt;
+  &lt;p&gt;只會傳送關卡、暱稱及設計想法，不含塗鴉；收件者可看到並保存這些資料。請勿填寫真實姓名、電話或其他個人資料。&lt;/p&gt;
+  &lt;label&gt;作者暱稱（必填）&lt;input id="submissionAuthor" maxlength="40" required autocomplete="off"&gt;&lt;/label&gt;
+  &lt;label&gt;設計想法（選填）&lt;textarea id="submissionNote" maxlength="1000" rows="3"&gt;&lt;/textarea&gt;&lt;/label&gt;
+  &lt;div class="submission-trap" aria-hidden="true"&gt;&lt;label&gt;請留白&lt;input id="submissionWebsite" tabindex="-1" autocomplete="off"&gt;&lt;/label&gt;&lt;/div&gt;
+  &lt;label class="submission-consent"&gt;&lt;input id="submissionConsent" type="checkbox" required&gt;我同意將這份關卡與以上資料送給收件者。&lt;/label&gt;
+  &lt;p id="submissionStatus" role="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;div class="submission-actions"&gt;&lt;button type="button" id="submissionClose"&gt;關閉&lt;/button&gt;&lt;button type="submit" id="submissionSend"&gt;送出投稿&lt;/button&gt;&lt;/div&gt;
+ &lt;/form&gt;
+&lt;/dialog&gt;
+
+&lt;script&gt;
+const densityStyles={
+ '0.25':{bg:'#e1f6ef',dot:'#4f9b88'},
+ '0.5': {bg:'#d7ecf6',dot:'#4f89a6'},
+ '0.75':{bg:'#dcdff3',dot:'#5d79a8'},
+ '1':   {bg:'#e6def4',dot:'#7564a3'},
+ '1.5': {bg:'#ead8e7',dot:'#91647f'},
+ '2':   {bg:'#f1d5dc',dot:'#a55d72'},
+ '3':   {bg:'#e8c2c8',dot:'#873f52'}
+};
+
+
+const CELL=40,COLS=25,ROWS=14,WIDTH=1000,HEIGHT=560;
+const layerDefs=[{d:.25,top:40,bottom:160},{d:.5,top:160,bottom:280},{d:1,top:280,bottom:400},{d:2,top:400,bottom:520}];
+const $=id=&gt;document.getElementById(id);
+const stage=$('stage'),boat=$('boat'),goal=$('goal'),msg=$('msg');
+let map=Array.from({length:ROWS},()=&gt;Array(COLS).fill(null)),mode='edit',tool='rock',state=null,rocks=[],items=[],goalPos=null,drawing=false,lastCell=null;
+// Half rocks use integer half-row coordinates; the original full-cell map stays intact.
+let halfRocks=[],initial={m:1,v:1};
+function size(v){return {w:CELL*v/2,h:CELL}}
+function fmt(n){return Number.isInteger(n)?n.toFixed(1):String(n)}
+function D(){return state.m/state.v}
+function honey(el,d,color,op=.5){const gap=20/Math.sqrt(d);Object.assign(el.style,{opacity:op,backgroundImage:`radial-gradient(circle,${color} 0 2.4px,transparent 2.8px),radial-gradient(circle,${color} 0 2.4px,transparent 2.8px)`,backgroundSize:`${gap}px ${gap}px`,backgroundPosition:`0 0,${gap/2}px ${gap/2}px`})}
+['L025','L050','L100','L200'].forEach((id,i)=&gt;honey($(id).querySelector('.dots'),layerDefs[i].d,densityStyles[String(layerDefs[i].d)].dot));
+function bounds(d){const l=layerDefs.find(l=&gt;l.d===d);if(l)return [l.top+20,l.bottom-20];const y=d===.75?280:d===1.5?400:500;return [y,y]}
+function blocked(x,y,v=state.v){const s=size(v);if(x-s.w/2&lt;0||x+s.w/2&gt;WIDTH||y-20&lt;40||y+20&gt;520)return true;return rocks.some(r=&gt;x-s.w/2&lt;r.x+r.w&amp;&amp;x+s.w/2&gt;r.x&amp;&amp;y-20&lt;r.y+r.h&amp;&amp;y+20&gt;r.y)||items.some(it=&gt;it.type==='door'&amp;&amp;!state.key&amp;&amp;overlap(x,y,s.w,it.x,it.y,40))}
+function overlap(x,y,w,ix,iy,iw){return Math.abs(x-ix)&lt;(w+iw)/2&amp;&amp;Math.abs(y-iy)&lt;40}
+function rect(parent,cls,x,y,w,h,text=''){const e=document.createElement('div');e.className=cls;e.textContent=text;Object.assign(e.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});parent.appendChild(e);return e}
+function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=&gt;rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=&gt;!i.taken).forEach(i=&gt;rect($('itemLayer'),'item '+i.type+(i.type==='door'&amp;&amp;state?.key?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M+':i.type==='key'?'鑰匙':state?.key?'開':'門'));goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
+function build(){rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=&gt;row.forEach((type,c)=&gt;{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:false,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=&gt;rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
+function render(){boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=&gt;b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y&lt;110?'auto':'calc(100% + 4px)';card.style.top=state.y&lt;110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').textContent=`M=${state.m}　V=${state.v}　D=${fmt(d)}　${state.key?'已取得鑰匙':''}`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y&lt;lo||state.y&gt;hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
+// All M/V changes are transactional; resolve collisions in connected nearby water.
+// Reposition only inside the new density region, or horizontally while in transit.
+function changeStats(m,v){
+ const next={...state,m,v},d=m/v,s=size(v);let position={x:state.x,y:state.y};
+ if(blocked(state.x,state.y,v)){
+  const [lo,hi]=bounds(d),inRegion=state.y&gt;=lo&amp;&amp;state.y&lt;=hi;
+  const queue=[[0,0]],seen=new Set(['0,0']);let best=null,bestDistance=Infinity;
+  // Search connected nearby water using the old hull. Never jump through rock.
+  for(let index=0;index&lt;queue.length;index++){
+   const [dx,dy]=queue[index],distance=dx*dx+dy*dy,x=state.x+dx,y=state.y+dy;
+   if(distance&lt;bestDistance&amp;&amp;!blocked(x,y,v)){best={x,y};bestDistance=distance}
+   for(const [sx,sy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    const nx=dx+sx,ny=dy+sy,key=nx+','+ny,py=state.y+ny;
+    if(seen.has(key)||nx*nx+ny*ny&gt;s.w*s.w||(!inRegion&amp;&amp;ny!==0)||(inRegion&amp;&amp;(py&lt;lo||py&gt;hi)))continue;
+    seen.add(key);if(!blocked(state.x+nx,py,state.v))queue.push([nx,ny]);
+   }
+  }
+  if(!best){msg.textContent='空間不足，無法改變 V；請先移到較寬的位置。';return false}
+  position=best;
+ }
+ Object.assign(next,position);state=next;render();return true;
+}
+function active(){return mode==='play'&amp;&amp;state&amp;&amp;!state.won}
+function step(dx,dy){const steps=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)));for(let i=0;i&lt;steps;i++){const x=state.x+dx/steps,y=state.y+dy/steps;if(blocked(x,y))break;state.x=x;state.y=y;const before=D();collect();if(state.won||D()!==before)break}}
+function finish(){if(goalPos&amp;&amp;overlap(state.x,state.y,size(state.v).w,goalPos.x,goalPos.y,40)){state.won=true;msg.textContent='過關！可回編輯繼續修改地圖。'}}
+function collect(){for(const it of items){if(it.taken||it.type==='door'||!overlap(state.x,state.y,size(state.v).w,it.x,it.y,40))continue;if(it.type==='key'){it.taken=true;state.key=true;msg.textContent='已取得鑰匙，所有門都已開啟。'}else if(state.m&lt;3&amp;&amp;changeStats(state.m+1,state.v)){it.taken=true}drawWorld()}finish()}
+// A one-cell opening must remain reachable with 24/16 px button increments.
+// Correct only a small perpendicular offset; test both swept paths, never shrink the hull.
+function clearPath(x,y,dx,dy){
+ const n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)));
+ for(let i=1;i&lt;=n;i++)if(blocked(x+dx*i/n,y+dy*i/n))return false;
+ return true;
+}
+function moveThroughOpening(dx,dy){
+ const start={x:state.x,y:state.y,d:D()},horizontal=dx!==0;
+ step(dx,dy);
+ if(state.won||D()!==start.d)return;
+ const remaining=horizontal?start.x+dx-state.x:start.y+dy-state.y;
+ if(Math.abs(remaining)&lt;1e-8)return;
+ const [lo,hi]=bounds(D()),limit=horizontal?8:12;
+ for(let offset=1;offset&lt;=limit;offset++)for(const sign of [-1,1]){
+  const ax=horizontal?0:offset*sign,ay=horizontal?offset*sign:0;
+  const x=state.x+ax,y=state.y+ay,rx=horizontal?remaining:0,ry=horizontal?0:remaining;
+  if(y&lt;lo||y&gt;hi||!clearPath(state.x,state.y,ax,ay)||!clearPath(x,y,rx,ry))continue;
+  step(ax,ay);
+  if(!state.won&amp;&amp;D()===start.d)step(rx,ry);
+  return;
+ }
+}
+function moveX(dx){if(!active())return;moveThroughOpening(dx,0);collect();render()}
+function moveY(dir){if(!active())return;const [lo,hi]=bounds(D());if(lo===hi||state.y&lt;lo||state.y&gt;hi)return;moveThroughOpening(0,Math.max(lo,Math.min(hi,state.y+dir*16))-state.y);collect();render()}
+function buoy(){if(!active())return;const [lo,hi]=bounds(D()),target=Math.max(lo,Math.min(hi,state.y));step(0,Math.sign(target-state.y)*Math.min(6,Math.abs(target-state.y)));collect();render()}
+function changeV(up){if(!active())return;const vals=[1,2,4],v=vals[vals.indexOf(state.v)+(up?1:-1)];if(v)changeStats(state.m,v)}
+function dropM(){if(active()&amp;&amp;state.m&gt;1)changeStats(state.m-1,state.v)}
+function paint(c,r,halfRow=r*2){
+ if(mode!=='edit'||c&lt;0||c&gt;=COLS||r&lt;=0||r&gt;=ROWS-1)return;
+ if(tool==='boat'||tool==='goal')map.forEach(row=&gt;row.forEach((v,i)=&gt;{if(v===tool)row[i]=null}));
+ if(tool==='halfRock'){
+  map[r][c]=null;
+  if(!halfRocks.some(h=&gt;h.column===c&amp;&amp;h.halfRow===halfRow))halfRocks.push({column:c,halfRow});
+ }else if(tool==='erase'){
+  map[r][c]=null;halfRocks=halfRocks.filter(h=&gt;h.column!==c||h.halfRow!==halfRow);
+ }else{
+  halfRocks=halfRocks.filter(h=&gt;h.column!==c||Math.floor(h.halfRow/2)!==r);
+  map[r][c]=tool;
+ }
+ build();
+}
+function pointAt(e){const b=stage.getBoundingClientRect();return {x:(e.clientX-b.left)*WIDTH/b.width,y:(e.clientY-b.top)*HEIGHT/b.height}}
+function cellAt(e){const p=pointAt(e);return [Math.floor(p.x/CELL),Math.floor(p.y/(CELL/2))]}
+function paintHalfCell(c,h){paint(c,Math.floor(h/2),h)}
+stage.addEventListener('pointerdown',e=&gt;{if(mode!=='edit'||e.button!==0||doodleTool)return;e.preventDefault();stage.setPointerCapture(e.pointerId);drawing=true;lastCell=cellAt(e);paintHalfCell(...lastCell)});
+stage.addEventListener('pointermove',e=&gt;{if(!drawing||doodleTool||!['rock','halfRock','erase'].includes(tool))return;const next=cellAt(e),[x,y]=lastCell,dx=next[0]-x,dy=next[1]-y,n=Math.max(Math.abs(dx),Math.abs(dy));for(let i=1;i&lt;=n;i++)paintHalfCell(Math.round(x+dx*i/n),Math.round(y+dy*i/n));lastCell=next});
+['pointerup','pointercancel','lostpointercapture'].forEach(name=&gt;stage.addEventListener(name,()=&gt;{drawing=false;lastCell=null}));
+function selectTool(id){tool=id;doodleTool=null;syncTools()}
+function syncTools(){
+ drawing=false;lastCell=null;doodleLast=null;doodlePointer=null;
+ document.querySelectorAll('#tools button').forEach(b=&gt;b.classList.toggle('active',!doodleTool&amp;&amp;b.dataset.tool===tool));
+ $('doodlePen').classList.toggle('active',doodleTool==='pen');$('doodleErase').classList.toggle('active',doodleTool==='erase');
+ canvas.classList.toggle('drawing',mode==='edit'&amp;&amp;!!doodleTool);
+ canvas.hidden=mode==='play';$('doodleTools').style.display=mode==='edit'?'contents':'none';
+ $('importBtn').disabled=mode==='play';$('levelName').disabled=mode==='play';stage.classList.toggle('half-grid',!doodleTool&amp;&amp;tool==='halfRock');
+}
+[['rock','岩石'],['halfRock','半格岩石'],['boat','小艇'],['goal','終點'],['mass','M+'],['key','鑰匙'],['door','門'],['erase','橡皮擦']].forEach(([id,label])=&gt;{const b=document.createElement('button');b.textContent=label;b.dataset.tool=id;b.classList.toggle('active',id===tool);b.onclick=()=&gt;selectTool(id);$('tools').appendChild(b)});
+// This canvas is purely visual. No game or serialization function reads its pixels.
+const canvas=$('doodleCanvas'),ink=canvas.getContext('2d');
+let doodleTool=null,doodleLast=null,doodlePointer=null;
+function strokeDoodle(a,b){ink.save();ink.globalCompositeOperation=doodleTool==='erase'?'destination-out':'source-over';ink.strokeStyle='#bd392c';ink.lineWidth=doodleTool==='erase'?24:4;ink.lineCap='round';ink.lineJoin='round';ink.beginPath();ink.moveTo(a.x,a.y);ink.lineTo(b.x,b.y);ink.stroke();ink.restore()}
+canvas.addEventListener('pointerdown',e=&gt;{if(mode!=='edit'||!doodleTool||e.button!==0||doodlePointer!==null)return;e.preventDefault();e.stopPropagation();canvas.setPointerCapture(e.pointerId);doodlePointer=e.pointerId;doodleLast=pointAt(e);strokeDoodle(doodleLast,{x:doodleLast.x+.01,y:doodleLast.y})});
+canvas.addEventListener('pointermove',e=&gt;{if(e.pointerId!==doodlePointer||!doodleLast)return;e.preventDefault();e.stopPropagation();const next=pointAt(e);strokeDoodle(doodleLast,next);doodleLast=next});
+['pointerup','pointercancel','lostpointercapture'].forEach(name=&gt;canvas.addEventListener(name,e=&gt;{e.stopPropagation();if(e.pointerId===doodlePointer){doodleLast=null;doodlePointer=null}}));
+$('doodlePen').onclick=()=&gt;{doodleTool='pen';syncTools()};$('doodleErase').onclick=()=&gt;{doodleTool='erase';syncTools()};$('doodleClear').onclick=()=&gt;{if(mode==='edit')ink.clearRect(0,0,WIDTH,HEIGHT)};
+// Versioned formal level format. Coordinates are logical grid units, never pixels.
+const FORMAT='density-submarine-level',RULES='density-lock-v1';
+function levelData(){
+ const data={name:$('levelName').value,format:FORMAT,version:1,rules:RULES,grid:{columns:COLS,rows:ROWS,cellPixels:CELL,halfRowsPerCell:2,fixedRockRows:[0,13]},liquids:layerDefs.map(l=&gt;({density:l.d,topHalfRow:l.top/20,bottomHalfRow:l.bottom/20})),initial:{...initial},start:null,goal:null,rocks:[],items:[]};
+ map.forEach((row,r)=&gt;row.forEach((type,c)=&gt;{const cell={column:c,row:r};if(type==='rock')data.rocks.push({column:c,halfRow:r*2,widthCells:1,heightHalfRows:2});else if(type==='boat')data.start=cell;else if(type==='goal')data.goal=cell;else if(type)data.items.push({type,...cell})}));
+ halfRocks.forEach(h=&gt;data.rocks.push({...h,widthCells:1,heightHalfRows:1}));
+ data.rocks.sort((a,b)=&gt;a.halfRow-b.halfRow||a.column-b.column);return data;
+}
+function validateLevel(data){
+ const fail=()=&gt;{throw Error('關卡格式或資料不正確，未匯入。')};
+ const object=v=&gt;v!==null&amp;&amp;typeof v==='object'&amp;&amp;!Array.isArray(v);
+ const keys=(v,list)=&gt;object(v)&amp;&amp;Object.keys(v).length===list.length&amp;&amp;list.every(k=&gt;Object.hasOwn(v,k));
+ const hasName=object(data)&amp;&amp;Object.hasOwn(data,'name');
+ if(hasName&amp;&amp;(typeof data.name!=='string'||data.name.length&gt;120))fail();
+ if(!keys(data,[...(hasName?['name']:[]),'format','version','rules','grid','liquids','initial','start','goal','rocks','items'])||data.format!==FORMAT||data.version!==1||data.rules!==RULES)fail();
+ const expected=levelData();
+ if(!keys(data.grid,Object.keys(expected.grid))||!['columns','rows','cellPixels','halfRowsPerCell'].every(k=&gt;data.grid[k]===expected.grid[k])||JSON.stringify(data.grid.fixedRockRows)!=='[0,13]')fail();
+ if(!Array.isArray(data.liquids)||data.liquids.length!==4||!data.liquids.every((l,i)=&gt;keys(l,['density','topHalfRow','bottomHalfRow'])&amp;&amp;Object.keys(l).every(k=&gt;l[k]===expected.liquids[i][k])))fail();
+ if(!keys(data.initial,['m','v'])||![1,2,3].includes(data.initial.m)||![1,2,4].includes(data.initial.v))fail();
+ if(!Array.isArray(data.rocks)||data.rocks.length&gt;600||!Array.isArray(data.items)||data.items.length&gt;300)fail();
+ const nextMap=Array.from({length:ROWS},()=&gt;Array(COLS).fill(null)),nextHalf=[],occupied=new Set();
+ const reserve=(c,h,count)=&gt;{if(!Number.isInteger(c)||c&lt;0||c&gt;=COLS||!Number.isInteger(h)||h&lt;2||h+count&gt;26)fail();for(let i=0;i&lt;count;i++){const k=c+','+(h+i);if(occupied.has(k))fail();occupied.add(k)}};
+ for(const r of data.rocks){if(!keys(r,['column','halfRow','widthCells','heightHalfRows'])||r.widthCells!==1||![1,2].includes(r.heightHalfRows)||(r.heightHalfRows===2&amp;&amp;r.halfRow%2!==0))fail();reserve(r.column,r.halfRow,r.heightHalfRows);if(r.heightHalfRows===2)nextMap[r.halfRow/2][r.column]='rock';else nextHalf.push({column:r.column,halfRow:r.halfRow})}
+ const place=(pos,type,isItem=false)=&gt;{if(!keys(pos,isItem?['type','column','row']:['column','row'])||!Number.isInteger(pos.row))fail();reserve(pos.column,pos.row*2,2);nextMap[pos.row][pos.column]=type};
+ if(data.start!==null)place(data.start,'boat');if(data.goal!==null)place(data.goal,'goal');
+ for(const i of data.items){if(!object(i)||!['mass','key','door'].includes(i.type))fail();place(i,i.type,true)}
+ return {name:hasName?data.name:'',map:nextMap,halfRocks:nextHalf,initial:{m:data.initial.m,v:data.initial.v}};
+}
+function importLevelText(text){
+ if(mode!=='edit')return false;
+ try{if(text.length&gt;200000)throw Error();const next=validateLevel(JSON.parse(text));map=next.map;halfRocks=next.halfRocks;initial=next.initial;$('levelName').value=next.name;build();msg.textContent='關卡已匯入；塗鴉保持不變。';return true}
+ catch(e){msg.textContent='關卡格式或資料不正確，未匯入。';return false}
+}
+function exportFileName(name){
+ let base=Array.from(name.trim().replace(/[&lt;&gt;:"/\\|?*\x00-\x1f\x7f]/g,'_').replace(/\.json$/i,'')).slice(0,100).join('').replace(/[.\s]+$/g,'');
+ if(!base)base='density_level';
+ if(/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/i.test(base))base='_'+base;
+ return base+'.json';
+}
+function downloadLevel(blob,fileName){
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=fileName;a.click();setTimeout(()=&gt;URL.revokeObjectURL(url),1000);
+ msg.textContent='已交由瀏覽器下載（不含塗鴉）。若要選資料夾，請開啟瀏覽器「下載前詢問儲存位置」。';
+}
+$('exportBtn').onclick=async()=&gt;{
+ const blob=new Blob([JSON.stringify(levelData(),null,2)+'\n'],{type:'application/json'}),fileName=exportFileName($('levelName').value);
+ if(typeof window.showSaveFilePicker!=='function'){downloadLevel(blob,fileName);return}
+ const button=$('exportBtn');button.disabled=true;
+ let writable;
+ try{
+  const handle=await window.showSaveFilePicker({id:'density-level-export',suggestedName:fileName,types:[{description:'密度小艇關卡 JSON',accept:{'application/json':['.json']}}]});
+  writable=await handle.createWritable();await writable.write(blob);await writable.close();writable=null;
+  msg.textContent='已儲存正式關卡 JSON 至選擇的位置（不含塗鴉）。';
+ }catch(error){
+  if(writable){try{await writable.abort()}catch{}}
+  if(error.name==='AbortError')msg.textContent='已取消匯出，地圖保持不變。';
+  else if(error.name==='SecurityError'||error.name==='NotSupportedError')downloadLevel(blob,fileName);
+  else msg.textContent='儲存失敗，請重試並選擇可寫入的資料夾；地圖保持不變。';
+ }finally{button.disabled=false}
+};
+$('importBtn').onclick=()=&gt;{if(mode==='edit')$('importFile').click()};
+$('importFile').onchange=async e=&gt;{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size&gt;200000)throw Error();importLevelText(await file.text())}catch(error){msg.textContent='無法讀取關卡，請選擇有效的 JSON 檔。'}};
+function narrowEntry(){for(let r=1;r&lt;ROWS-1;r++){for(let c=0;c&lt;COLS;c++){if(map[r][c]==='rock')continue;const left=c===0||map[r][c-1]==='rock',right=c===COLS-1||map[r][c+1]==='rock';if(left&amp;&amp;right&amp;&amp;r&gt;1&amp;&amp;r&lt;ROWS-2&amp;&amp;map[r-1][c]!=='rock'&amp;&amp;map[r+1][c]!=='rock')return true}}return false}
+function toggleMode(){if(mode==='edit'){build();if(!state||!goalPos){msg.textContent='請先放置小艇與終點。';return}if(narrowEntry()){msg.textContent='有只有 1 格寬的直向通道；請拓寬到至少 2 格再試玩。';return}if(blocked(state.x,state.y)){msg.textContent='小艇起點空間不足，請移動起點或清除周圍岩石。';return}mode='play';msg.textContent='試玩中：調整 M / V，利用密度抵達終點。'}else{mode='edit';build();msg.textContent='已回編輯，原地圖與道具完整保留。'}stage.classList.toggle('editing',mode==='edit');$('tools').hidden=mode==='play';$('tools').style.display=mode==='play'?'none':'contents';$('clearBtn').hidden=mode==='play';$('restartBtn').hidden=mode==='edit';$('modeBtn').textContent=mode==='edit'?'試玩':'回編輯';$('modeLabel').textContent=mode==='edit'?'編輯模式｜每格 40 × 40':'試玩模式';syncTools();render()}
+$('modeBtn').onclick=toggleMode;$('clearBtn').onclick=()=&gt;{if(mode!=='edit')return;map=Array.from({length:ROWS},()=&gt;Array(COLS).fill(null));halfRocks=[];build();msg.textContent='已清空；上下岩石與四層液體保留。'};$('restartBtn').onclick=()=&gt;{build();msg.textContent='已重新試玩。'};
+$('left').onclick=()=&gt;moveX(-24);$('right').onclick=()=&gt;moveX(24);$('up').onclick=()=&gt;moveY(-1);$('down').onclick=()=&gt;moveY(1);$('vPlus').onclick=()=&gt;changeV(true);$('vMinus').onclick=()=&gt;changeV(false);$('mMinus').onclick=dropM;
+window.addEventListener('keydown',e=&gt;{const action={ArrowLeft:()=&gt;moveX(-24),ArrowRight:()=&gt;moveX(24),ArrowUp:()=&gt;moveY(-1),ArrowDown:()=&gt;moveY(1),NumpadAdd:()=&gt;changeV(true),NumpadSubtract:()=&gt;changeV(false),NumpadMultiply:dropM}[e.code];if(action&amp;&amp;mode==='play'&amp;&amp;!submissionDialog.open&amp;&amp;!e.target.closest('input,textarea,select,[contenteditable]')){e.preventDefault();action()}});
+function fit(){const w=document.querySelector('.stageWrap').clientWidth,scale=Math.min(1,w/1000);stage.style.transform=`scale(${scale})`;document.querySelector('.stageWrap').style.height=560*scale+'px'}
+window.addEventListener('resize',fit);stage.classList.add('editing');syncTools();build();fit();msg.textContent='選擇工具並點格子；放好小艇與終點後按「試玩」。';setInterval(buoy,90);
+
+// Submission uses Apps Script's same-host bridge; no public Drive folder or API key.
+const submissionDialog=$('submissionDialog');
+let submissionPending=null,submissionBusy=false,submissionAttempt=0;
+function submissionAvailable(){return !!(window.google&amp;&amp;google.script&amp;&amp;google.script.run)}
+function submissionSetBusy(busy){submissionBusy=busy;$('submissionSend').disabled=busy||!submissionAvailable();$('submissionClose').disabled=busy;}
+$('submitBtn').onclick=()=&gt;{
+ if(!levelData().start||!levelData().goal){msg.textContent='投稿前請先放置小艇與終點。';return}
+ if(!$('levelName').value.trim()){msg.textContent='投稿前請填寫關卡名稱。';$('levelName').focus();return}
+ $('submissionStatus').textContent=submissionAvailable()?'':'本機版可編輯、試玩及匯出。免登入投稿請開啟設定教學中部署完成的 Google 網頁網址。';
+ submissionSetBusy(false);submissionDialog.showModal();
+};
+$('submissionClose').onclick=()=&gt;submissionDialog.close();
+submissionDialog.addEventListener('cancel',e=&gt;{if(submissionBusy)e.preventDefault()});
+$('submissionForm').onsubmit=e=&gt;{
+ e.preventDefault();if(submissionBusy||!submissionAvailable())return;
+ const data=levelData(),author=$('submissionAuthor').value.trim(),note=$('submissionNote').value.trim();
+ if(!author||!data.name.trim()||!data.start||!data.goal){$('submissionStatus').textContent='請填寫暱稱、關卡名稱，並放置小艇與終點。';return}
+ if(!$('submissionConsent').checked)return;
+ const fingerprint=JSON.stringify({author,note,level:data});
+ if(!submissionPending||submissionPending.fingerprint!==fingerprint){submissionPending={fingerprint,requestId:crypto.randomUUID()};}
+ const payload={requestId:submissionPending.requestId,author,note,website:$('submissionWebsite').value,level:JSON.stringify(data)};
+ const attempt=++submissionAttempt;submissionSetBusy(true);$('submissionStatus').textContent='正在送出，請稍候…';
+ const timer=setTimeout(()=&gt;{if(attempt!==submissionAttempt)return;submissionAttempt++;submissionSetBusy(false);$('submissionStatus').textContent='尚未收到回覆，無法確認是否成功。請保持內容不變後重試；同一筆投稿會使用相同編號避免重複收件。';},60000);
+ const failure=()=&gt;{if(attempt!==submissionAttempt)return;clearTimeout(timer);submissionSetBusy(false);$('submissionStatus').textContent='未能確認投稿成功，可能是連線或收件設定問題。請稍後重試，或先匯出 JSON 保存。';};
+ try{google.script.run.withSuccessHandler(result=&gt;{
+  if(attempt!==submissionAttempt)return;clearTimeout(timer);submissionSetBusy(false);
+  if(!result||result.ok!==true){$('submissionStatus').textContent=result&amp;&amp;typeof result.message==='string'?result.message:'收件未完成，請稍後重試。';return}
+  $('submissionStatus').textContent='投稿成功！收件編號：'+result.receipt+'。你的關卡已存入收件者的 Google 雲端硬碟。';
+ }).withFailureHandler(failure).submitLevel(payload);}catch(error){failure()}
+};
+
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
+</textarea></details></main><script>document.getElementById("copy").onclick=async()=>{const t=document.getElementById("payload");try{await navigator.clipboard.writeText(t.value);document.getElementById("status").textContent="已複製完整遊戲，請貼到 Google 的 Index.html。"}catch(e){t.closest("details").open=true;t.focus();t.select();document.getElementById("status").textContent="已選取文字，按 Ctrl+C 複製，再貼到 Google 的 Index.html。"}};</script></html>
