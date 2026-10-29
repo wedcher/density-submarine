@@ -1,6 +1,15 @@
 const MAX_DAILY_SUBMISSIONS=100;
 const SHEET_PROPERTY_='DENSITY_CLASSROOM_SHEET_ID';
 const HEADER_=['投稿編號','投稿時間','關卡名稱（JSON文字）','暱稱（JSON文字）','想法（JSON文字）','內容摘要','關卡JSON_1','關卡JSON_2','關卡JSON_3','關卡JSON_4','關卡JSON_5'];
+// Run this from the owner's editor. Keep the scope check outside error handlers
+// so Apps Script can display its granular permission dialog instead of swallowing it.
+function authorizeClassroom(){
+ ScriptApp.requireScopes(ScriptApp.AuthMode.FULL,['https://www.googleapis.com/auth/spreadsheets']);
+ const result=listLevels();
+ if(!result.ok)throw Error(result.message);
+ console.log('試算表授權及投稿表讀取成功；現有投稿 '+result.levels.length+' 關。');
+ return {ok:true};
+}
 function doGet(e){
  const origin=e&&e.parameter&&e.parameter.origin||'https://wedcher.github.io';
  if(origin!=='https://wedcher.github.io'&&!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))throw Error('不支援的遊戲來源');

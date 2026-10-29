@@ -91,3 +91,13 @@ npm test 執行瀏覽器、後端及通道測試。測試需 Playwright Chromium
 使用者在編輯器執行 listLevels 後回報 SpreadsheetApp.create 缺少 spreadsheets 權限。使用者提供的現有 manifest 沒有 oauthScopes，時間、V8、以部署者執行及匿名存取設定均已確認。這代表尚未明確設定範圍；不能僅憑這點斷言自動偵測失效，也不能把新增 scope 當作已取得同意。
 
 已準備 google-apps-script/appsscript.json，保留使用者既有各欄位，僅明確加入實際必要的 spreadsheets 權限。擁有者仍需貼入、儲存並執行 listLevels，檢查 Google 是否要求並完成授權。若仍失敗，繼續查看授權提示／執行紀錄，不宣稱已修復雲端。此項修正需在驗證後更新原部署版本；保留原網址與所有資料。進度仍為 3／6。
+
+## 授權錯誤持續時的修正
+
+使用者設定明確 spreadsheets scope 後，在編輯器執行 listLevels 仍回報 SpreadsheetApp.create 缺權限。不能據此判定是使用者勾選錯誤或 manifest 未存檔；Google 同意狀態尚未完成驗證。
+
+新增擁有者編輯器入口 authorizeClassroom，依 Google 官方 granular authorization 文件在任何 catch 外呼叫 ScriptApp.requireScopes(FULL, [spreadsheets])，使缺少同意時由 Google 顯示授權提示，而不是被一般收件錯誤處理吞掉。只在該授權檢查通過後才讀取／初始化投稿表，失敗則明確拋錯，不把「執行完畢」當成功。學生端仍沿用原 RPC，不向學生要求 Google 登入。
+
+新增本機測試：缺授權會向外拋出、不建立試算表；授權後才建立或讀取。真實 Google 仍待擁有者貼入更新後的完整 Code.gs、執行 authorizeClassroom 並完成授權。進度仍為 3／6。
+
+官方依據：https://developers.google.com/apps-script/concepts/scopes#handle_granular_oauth_permissions
