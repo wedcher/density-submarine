@@ -85,3 +85,9 @@ npm test 執行瀏覽器、後端及通道測試。測試需 Playwright Chromium
 實際在未登入 Google 的全新瀏覽器 context 開啟正式 GitHub 網站：背景連線及 listLevels RPC 已到達 Google，但服務回傳「Google 收件服務尚未就緒」。尚未確認原始錯誤；需擁有者在 Apps Script 編輯器執行 listLevels，觸發所需試算表授權或查看執行紀錄。測試在送件前停止，未新增、刪除任何投稿。這是實際雲端失敗結果，不是模擬。
 
 進度維持 3／6：第 4 項已完成新版部署及匿名橋接連通，但試算表存取與真實收件未完成；第 5、6 項仍待完成實際流程。下一步為 Google 帳號內執行 listLevels；不需要再修改程式或重建部署。
+
+## 試算表授權診斷更新
+
+使用者在編輯器執行 listLevels 後回報 SpreadsheetApp.create 缺少 spreadsheets 權限。使用者提供的現有 manifest 沒有 oauthScopes，時間、V8、以部署者執行及匿名存取設定均已確認。這代表尚未明確設定範圍；不能僅憑這點斷言自動偵測失效，也不能把新增 scope 當作已取得同意。
+
+已準備 google-apps-script/appsscript.json，保留使用者既有各欄位，僅明確加入實際必要的 spreadsheets 權限。擁有者仍需貼入、儲存並執行 listLevels，檢查 Google 是否要求並完成授權。若仍失敗，繼續查看授權提示／執行紀錄，不宣稱已修復雲端。此項修正需在驗證後更新原部署版本；保留原網址與所有資料。進度仍為 3／6。
