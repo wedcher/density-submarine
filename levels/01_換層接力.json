@@ -1,0 +1,233 @@
+{
+  "name": "01_換層接力",
+  "format": "density-submarine-level",
+  "version": 1,
+  "rules": "density-lock-v1",
+  "grid": {
+    "columns": 25,
+    "rows": 14,
+    "cellPixels": 40,
+    "halfRowsPerCell": 2,
+    "fixedRockRows": [
+      0,
+      13
+    ]
+  },
+  "liquids": [
+    {
+      "density": 0.25,
+      "topHalfRow": 2,
+      "bottomHalfRow": 8
+    },
+    {
+      "density": 0.5,
+      "topHalfRow": 8,
+      "bottomHalfRow": 14
+    },
+    {
+      "density": 1,
+      "topHalfRow": 14,
+      "bottomHalfRow": 20
+    },
+    {
+      "density": 2,
+      "topHalfRow": 20,
+      "bottomHalfRow": 26
+    }
+  ],
+  "initial": {
+    "m": 1,
+    "v": 1
+  },
+  "start": {
+    "column": 2,
+    "row": 8
+  },
+  "goal": {
+    "column": 22,
+    "row": 8
+  },
+  "rocks": [
+    {
+      "column": 6,
+      "halfRow": 6,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 8,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 10,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 12,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 14,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 16,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 18,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 20,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 22,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 6,
+      "halfRow": 24,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 2,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 4,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 6,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 12,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 14,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 16,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 18,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 20,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 22,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 12,
+      "halfRow": 24,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 2,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 4,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 6,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 8,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 10,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 12,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 18,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 20,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 22,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    },
+    {
+      "column": 18,
+      "halfRow": 24,
+      "widthCells": 1,
+      "heightHalfRows": 2
+    }
+  ],
+  "items": []
+}

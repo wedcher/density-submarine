@@ -1,0 +1,25 @@
+# This workspace contains old versions and personal setup material.
+# Publish only the maintained game, reusable cloud code, examples, and tests.
+*
+!.gitignore
+!.gitattributes
+!.nojekyll
+!README.md
+!index.html
+!config.json
+!package.json
+!package-lock.json
+!src/
+!src/**
+!scripts/
+!scripts/**
+!tests/
+!tests/**
+!levels/
+!levels/**
+!google-apps-script/
+!google-apps-script/**
+node_modules/
+test-results/
+*.local.json
+.env*
