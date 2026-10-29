@@ -1,0 +1,35 @@
+{
+  "sourceFolder": "密度小艇_匯出的關卡/範本題",
+  "levels": [
+    {
+      "file": "01_雙邊抉擇 (2).json",
+      "originalFile": "01雙邊抉擇 (2).json",
+      "originalSha256": "a5fc054ecf97e59be00d1136b686a7b33c63715ee40223a558494ce607574bcc",
+      "adjustment": "added name from original filename; map and rules unchanged"
+    },
+    {
+      "file": "02_要繞路拿M.json",
+      "originalFile": "02要繞路拿M.json",
+      "originalSha256": "db305903b9cc64586a131ce87453fe4d1fd8fe1c0cf044386721ff17e8d42b5f",
+      "adjustment": "added name from original filename; map and rules unchanged"
+    },
+    {
+      "file": "03_螺旋二選一(單一).json",
+      "originalFile": "03螺旋二選一(單一).json",
+      "originalSha256": "c99a10327f6fc24ccb082a80c7e8b7c636272e73554aa22c08056035669073d4",
+      "adjustment": "none"
+    },
+    {
+      "file": "04_螺旋2選一( 兩條都要走).json",
+      "originalFile": "04螺旋2選一( 兩條都要走).json",
+      "originalSha256": "a75e1478ca4d3d565536de2d4eea306809bd7aafff87937d5da3048766d26c0d",
+      "adjustment": "none"
+    },
+    {
+      "file": "05_卡來卡去1028.json",
+      "originalFile": "05卡來卡去1028.json",
+      "originalSha256": "3b4493481b3b1160f36c73462af4d67769c5c1d5dcaedee49381dc6a2ed23bd6",
+      "adjustment": "none"
+    }
+  ]
+}

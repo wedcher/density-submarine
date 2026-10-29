@@ -1,0 +1,10 @@
+body[data-view="play"] #materialRow,body[data-view="play"] #levelRow,body[data-view="play"] #designPanel{display:none}
+body[data-view="design"] #homePanel,body[data-view="design"] #designEntry{display:none}
+body[data-view="play"] #backToPlay{display:none}
+.classroom-nav{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.classroom-panel{padding:12px 14px;margin:10px 0;background:#fffdfa;border:2px solid #d7d0c5;border-radius:12px;line-height:1.7}
+.classroom-panel h2{font-size:18px;margin:0 0 8px}.level-list{display:flex;gap:7px;flex-wrap:wrap}.level-list button{text-align:left;max-width:100%;overflow-wrap:anywhere}
+.level-list small{display:block;font-weight:normal}.classroom-hint{font-size:14px;margin:6px 0}.classroom-panel button:disabled{opacity:.45;cursor:default}
+#submissionDialog{max-width:520px;width:calc(100vw - 28px);max-height:90vh;overflow:auto;padding:22px;border:2px solid #243139;border-radius:14px;background:#fffdfa;color:#243139;line-height:1.7}
+#submissionDialog::backdrop{background:#14212a88}#submissionDialog h2{margin-top:0}#submissionForm>label{display:block;margin:12px 0}#submissionAuthor,#submissionNote{display:block;width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #bfb6a8;border-radius:7px}#submissionStatus{white-space:pre-wrap;overflow-wrap:anywhere}.submission-actions{display:flex;gap:8px;justify-content:flex-end}.submission-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+#backendBridge{display:none}#submitBtn{background:#ffdf83}#qualificationStatus{font-weight:bold}

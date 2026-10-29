@@ -1,55 +1,71 @@
-# 密度小艇：正式版本與維護規則
+# 密度小艇：正式版本與今日進度
 
-## 已確認的正式版本
+## 正式來源與規格
 
-2026-10-29，使用者同意以本機 `density_submarine_editor_v2.html` 為正式底稿，保留通道對齊修正，並保留 GitHub 的五個示範關卡、使用說明與投稿入口。v9 的二十關、隨機抽關、答案、音效及掉落動畫留在歷史檔案，本輪不合併。
+正式遊戲核心為 `src/editor.html`，源自本機 `D:\MyApp\density_submarine_codex_handoff\density_submarine_editor_v2.html`，含通道對齊修正。已確認的課堂需求記於 [SPEC.md](SPEC.md)，遇到設計取捨須先詢問使用者。
 
-最初底稿的完整路徑：`D:\MyApp\density_submarine_codex_handoff\density_submarine_editor_v2.html`。
+原始歷史 HTML 保留，不作日常維護入口。首次發布 `266cf16` 曾使用 before_clearance_fix；`eaca833` 已改正並完成線上比對。本輪延續含修正的核心，不回退。
 
-本機歷史 HTML 不再是日常維護入口。跨電腦工作一律使用儲存庫內的 `src/editor.html` 作為共同遊戲來源，避免依賴某台電腦上的舊檔。
+## 現況檢查（2026-10-29）
 
-## 來源、產物與部署
+- 修改前 GitHub 已有編輯器、試玩、保存、通道修正；預設進入編輯，投稿需下載後切到另一個 Google 遊戲。
+- 修改前 Google 範本含投稿表單，Code.gs 存私人 Drive JSON，但沒有公開清單或關卡讀取，不能讓其他學生直接選玩。
+- 早先 Google `/exec` 曾回傳空白模板；本輪重新唯讀查核，已回傳舊遊戲 HTML（32803 字元），但公開函式仍只有 doGet、submitLevel，沒有新清單與讀取功能。尚未部署本輪新版，本輪沒有替使用者更新 Google 或實際寫入 Google 資料。
+- 依最新 SPEC 改為同一 HTML 內遊玩、設計、投稿；Google 只作試算表後端與背景資料連線。舊的兩遊戲網站流程已淘汰。
 
-| 檔案 | 用途 |
+## 檔案分工
+
+| 檔案 | 實際用途 |
 | --- | --- |
-| `src/editor.html` | 正式遊戲共同來源；含浮力、碰撞、通道對齊、編輯器、半格岩石、塗鴉與 JSON 格式 |
-| `scripts/build-site.cjs` | 加上網站的示範關卡、說明、Google 投稿導引 |
-| `index.html` | GitHub Pages 發布產物；由建置程式產生，請勿單獨修改 |
-| `scripts/build-google.cjs` | 由同一遊戲來源產生 Google 遊戲、直接投稿視窗、收件程式及教學 |
-| `google-apps-script/Index.html` | 貼進 Google Apps Script 的完整 HTML；保留正式版通道修正，透過 Google 橋接 API 送件 |
-| `google-apps-script/Code.gs` | Google 收件程式；儲存可直接匯入的 JSON，暱稱與想法放在檔案說明 |
-| `levels/` | 五個密度應用示範關卡，不是 v9 的二十關 |
-| `config.json` | Google 公開部署網址；不能放密碼或權杖 |
+| src/editor.html | 保留既有遊戲、編輯器及通道修正的核心 |
+| src/classroom.js、classroom-ui.html、classroom.css | 同頁遊玩／設計切換、官方與投稿清單、草稿暫存、通關資格及投稿 |
+| src/backend-client.js | 在背景與 Google 橋接頁通訊；學生頁面不導航、不開新視窗 |
+| src/submission-dialog.html | 暱稱、公開同意與投稿表單 |
+| index.html | 唯一學生遊戲 HTML，由建置產生，預設正常遊戲 |
+| src/server.gs | 試算表收件、清單、單關讀取；自動建立並記住專用試算表 |
+| src/backend-bridge.html | Google 背景連線模板，不含遊戲或編輯器 |
+| google-apps-script/Code.gs、Index.html | 準備給擁有者完整貼入 Google 的後端與橋接產物，非第二份遊戲 |
+| google-apps-script/更新Google遊戲.html | 複製完整程式的逐步教學，無需自行修改 ID 或程式 |
+| levels/、levels/sources.json | 使用者指定的五題與原始檔 SHA-256；原先五關已移到 tests/fixtures 作回歸資料 |
+| config.json | 原 Google /exec 後端網址，不放憑證 |
 
-建置：`npm run build`。測試：`npm test`。瀏覽器測試需先安裝 Playwright 及 Chromium，或設定 `BROWSER_CHANNEL=msedge` 使用本機 Edge。
+Google 只需部署後端兩檔。試算表在首次成功呼叫時自動建立為「密度小艇投稿（試算表）」，保留私人權限，透過 API 供學生取得關卡名稱、暱稱與地圖。想法不回傳清單。新投稿直接可讀，不需 GitHub 再部署、評分或老師審核。
 
-兩個平台共用遊戲核心，但投稿方式不同：GitHub 下載 JSON 後開啟 Google 頁面；Google 頁面匯入 JSON，再用直接投稿表單送出。GitHub 更新不會自動更新 Google Apps Script。
+目前已知的舊 Drive JSON 不會自動搬入新試算表。Google 部署權限須保持以擁有者執行、所有人存取，並重新授權試算表範圍。Google 端授權、匿名連線、第三方框架環境和實際寫入均需線上驗收。
 
-## 遊戲規則與保留功能
+## 投稿資格
 
-- D＝M／V，M 為 1、2、3；V 為 1、2、4。
-- 小艇高固定 1 格，寬依序為 0.5、1、2 格。
-- 四層液體密度為 0.25、0.5、1、2；保留 0.75、1.5 交界活動及 D=3 沉底。
-- 通道設計至少保留 2 格，考密度應用，不靠縮小艇身穿越。
-- 通道對齊只校正小幅位置偏差，不縮小船身、不穿牆、不跨越密度活動區。
-- 保留岩石、半格岩石、起點、終點、M＋、鑰匙、門、橡皮擦、塗鴉、關卡名稱、匯入匯出、試玩與重新試玩。
-- 塗鴉不匯出；試玩狀態不寫回正式關卡；關閉網頁前須匯出保存。
+試玩開始記錄正式關卡快照，成功通關再次比對。正式關卡修改、名稱輸入、清空或匯入會撤銷資格，改回舊內容也不恢復；送出時再次比對完整快照。一般遊玩不會取得設計稿資格。塗鴉不屬於正式關卡。這是正常流程驗證，不聲稱防止使用開發者工具造假。
 
-## 跨電腦更新
+## 使用者指定範本
 
-第一次：`git clone https://github.com/wedcher/density-submarine.git`。
+原始資料夾：`D:\MyApp\density_submarine_codex_handoff\密度小艇_匯出的關卡\範本題`。依使用者確認，取代先前自動產生的官方五關。僅為前兩題補上原檔名作名稱，未改動地圖。
 
-每次開始先 `git pull --ff-only`，修改來源後建置、測試，提交來源與產物，再 `git push`。Pages 建置完成後，遊戲網址不變： https://wedcher.github.io/density-submarine/ 。
+五題均通過匯入及啟動檢查；本輪未聲稱已走完這些範本的完整解題路線。使用者最新確認取消所有通道寬度攔截，包含官方五題、學生設計與同學投稿。已移除原先 narrowEntry 啟動／試玩限制，不需要第五題特例；實際尺寸、碰撞、浮力與通道對齊不變。學生只要親自通關目前設計便可投稿，修改後需重新通關。
 
-若改動 JSON 格式、地圖尺寸、道具種類或密度規則，需同步檢查 Google 伺服器驗證與匯入相容性，再更新 Google 部署。
+## 測試結果與六項進度
 
-## 版本沿革與尚待驗收
+本機實測包括：實際指標放置起終點、試玩通關、JSON 下載／清空／匯入還原、同頁返回草稿；名稱／地圖修改後失效、改回也不恢復、匯入失效、送出前完整資料再次比對。兩個獨立瀏覽器 context 經跨來源、雙層 iframe 橋接與模擬 Sheets API，驗證 A 投稿 → B 重新整理 → 讀取並成功遊玩，沒有換遊戲網站或重新部署。
 
-- GitHub 首次發布 `266cf16` 取自 `density_submarine_editor_v2_before_clearance_fix.html`，未含通道對齊修正；不能當成此次確認的正式底稿。
-- 本次統一為含 `clearPath()` 與 `moveThroughOpening()` 的 v2。原始歷史檔案保留在原電腦，未刪除或覆寫。
-- 2026-10-29 唯讀核查 Google `/exec`：後端有 `doGet` 與 `submitLevel`，但 HTML 仍是預設空白模板。這不是正式遊戲內容。
-- 本機 Google 檔案及測試完成不代表雲端收件成功。需由擁有者貼上完整 HTML、儲存、更新部署，再用未登入的無痕視窗送件，確認 Drive 真正收到 JSON。驗收前不得宣稱 Google 投稿已可用。
+追加實測：學生自己設計一格寬通道，試玩通關後可投稿，另一個獨立學生身分可讀取並通關；不再有窄通道啟動攔截，但碰撞仍阻擋實際比船身窄的開口。
 
-## 發布與資料
+後端以模擬 SpreadsheetApp 測試：自動建立、成功收件、去重、新投稿排序、暱稱顯示、地圖讀取、欄位驗證、試算表公式文字處理、寫入失敗與重試。這些不等於 Google 線上實測。
 
-使用者已授權公開 `wedcher/density-submarine`。登入憑證、收件資料夾 ID、投稿者資料及本機個人設定不可提交；`Code.gs` 的實際資料夾 ID 僅由擁有者填入 Google 專案。不要把 Google 範本內的佔位 ID 覆蓋到已設定好的雲端程式。
+| 項目 | 狀態 | 證據或待驗收內容 |
+| --- | --- | --- |
+| 1. 確認 GitHub 與本機來源 | 已實測完成 | 雜湊、Git 提交與線上 HTML 比對；來源已記錄 |
+| 2. 通道對齊整合並發布 | 已實測完成 | eaca833 已發布、7 項通道回歸，本輪沿用 |
+| 3. 編輯器設計、試玩、保存 | 已實測完成 | 真實瀏覽器指標設計、通關、保存／匯入及資格撤銷測試 |
+| 4. Google 投稿 | 程式已完成但待驗收 | 模擬 Sheets 通過；真實授權、匿名收件、試算表寫入待使用者驗收 |
+| 5. 他人取得並遊玩 | 程式已完成但待驗收 | 兩獨立 context 本機連線通過；Google 實際清單／讀取待使用者驗收 |
+| 6. 完整設計→投稿→另一人遊玩 | 程式已完成但待驗收 | 本機模擬鏈路通過；真實線上兩人流程待使用者驗收 |
+
+完成計數為 3／6。範本五題皆保留原樣；依使用者最新確認，所有關卡均無啟動前的通道寬度攔截；不以本機模擬測試冒充雲端驗收。
+
+## 建置與跨電腦更新
+
+
+pm run build` 產生學生 HTML 與 Google 後端產物，
+pm test` 執行瀏覽器、後端及通道測試。測試需 Playwright Chromium，或設定 BROWSER_CHANNEL=msedge。輸出在忽略的 test-results/。
+
+開始前 git pull --ff-only，修改來源、建置及測試後提交並 push。GitHub Pages 網址固定：https://wedcher.github.io/density-submarine/ 。Google 更新需另外貼入程式並重新部署。公開儲存庫不放權杖、私人試算表 ID、投稿內容或登入憑證。

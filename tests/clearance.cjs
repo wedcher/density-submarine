@@ -4,7 +4,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE_DIR||'playwright');
 (async()=>{const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});try{
  const p=await browser.newPage();await p.addInitScript(()=>window.setInterval=()=>0);
  let expected;
- for(const file of ['src/editor.html','index.html','google-apps-script/Index.html']){
+ for(const file of ['src/editor.html','index.html']){
   await p.goto(pathToFileURL(path.join(__dirname,'..',file)).href);
   const result=await p.evaluate(()=>{
    const checks=[];const check=(name,fn)=>{if(!fn())throw Error(name);checks.push(name)};

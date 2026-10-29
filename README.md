@@ -1,37 +1,33 @@
 # 密度小艇
 
-用 **D＝M／V** 解謎的密度應用遊戲，附地圖編輯、試玩、JSON 匯入／匯出與五個示範關卡。通道設計至少保留 2 格，重點放在密度與質量取捨。
-
-正式版本、來源與部署分工見 [PROJECT.md](PROJECT.md)。共同來源為 `src/editor.html`，已納入 v2 的通道對齊修正。網站與 Google 部署檔都由此來源建置。
-
 遊戲網址：https://wedcher.github.io/density-submarine/
 
-## 使用
+用 D＝M／V 探索密度的課堂遊戲。開啟後直接遊玩官方範本或同學投稿；按「設計／投稿關卡」在同一頁編輯、試玩、保存。成功通關自己的設計後才能投稿，修改後要重新通關。詳細規格見 [SPEC.md](SPEC.md)，進度與來源見 [PROJECT.md](PROJECT.md)。
 
-直接開遊戲網址，或下載專案後用瀏覽器開啟 `index.html`。不必安裝套件。編輯內容不會自動保存，離開前請匯出 JSON。
+## 同學投稿
 
-## 投稿
+Google Apps Script 是背景後端，將合法投稿存進私人 Google 試算表，提供新投稿優先的清單與關卡讀取。學生不需 Google 登入、不切換另一個遊戲網站。投稿成功後，另一位學生重新整理清單即可遊玩，不用重新部署 GitHub。
 
-遊戲內按「投稿關卡」，先下載 JSON，再開啟 Google 投稿頁；在該頁匯入 JSON 並送出。下載不等於投稿成功，請以 Google 頁面的收件編號為準。
+**程式及本機模擬流程已測試，真實 Google 收件尚待擁有者部署及驗收。** Google 未更新時會顯示連線提示，官方題目、設計和 JSON 保存仍可使用。舊 Drive 檔案不會自動搬入新試算表。
 
-Google 投稿服務與 GitHub Pages 是分開部署的。目前 Google 端仍待擁有者完成部署驗收；遊戲的編輯、試玩和匯出不受影響。Google 不正常時請保留 JSON，暫勿重複送件。
+首頁範本來自使用者指定的「範本題」資料夾，來源記於 levels/sources.json。五題保留原樣。依使用者最新確認，已取消所有關卡的通道寬度啟動攔截；實際船身尺寸、碰撞及浮力不變。本輪不聲稱官方五題都已完整解題實測。
 
-## 在公司與家裡繼續更新
+## Google 設定
 
-第一次在另一台電腦：
+開啟 google-apps-script/更新Google遊戲.html，按按鈕複製完整 Code.gs 和 Index.html，到現有 Google 專案的對應檔案全選貼上、儲存，再更新部署新版本；以我執行、所有人可存取，完成試算表授權。不用填寫資料夾或試算表 ID。Google 的 Index.html 是資料連線頁，並不是另一個遊戲。
+
+用未登入的無痕視窗確認首頁清單載入，設計一關並通關後投稿，再用另一個視窗刷新清單、載入及通關，才完成真實上課驗收。
+
+## 更新專案
+
+另一台電腦第一次：
 
 ```sh
 git clone https://github.com/wedcher/density-submarine.git
 cd density-submarine
 ```
 
-每次修改前：
-
-```sh
-git pull --ff-only
-```
-
-修改遊戲來源 `src/editor.html`，需要時修改 `scripts/build-site.cjs` 的網站功能，然後：
+每次修改前先 git pull --ff-only；正式遊戲核心在 src/editor.html，同頁功能在 src/classroom.js，後端在 src/server.gs。修改後：
 
 ```sh
 npm run build
@@ -41,29 +37,10 @@ git commit -m "更新密度小艇"
 git push
 ```
 
-網站由 `main` 分支根目錄的 `index.html` 發布。請保留它並與來源一起提交；GitHub 完成 Pages 建置後，同一個網址就會更新。若畫面仍舊，重新整理。兩台電腦不要同時改同一份檔案；遇到衝突請先處理，不要強制推送。
+GitHub Pages 發布 main 根目錄的 index.html。原生 index.html 也可以本機開啟設計、試玩與保存；投稿與同學清單需從 HTTP(S) 遊戲網址使用。Google 後端修改仍需另行部署。
 
-## Google 收件設定與修復空白頁
+## 開發測試
 
-`google-apps-script/` 內有兩份完整部署檔：
+網站本身不需要安裝依賴。要跑測試：npm install，npx playwright install chromium，再 npm test。也可設定 BROWSER_CHANNEL=msedge 使用本機 Edge。測試結果中清楚區分模擬 Google API 與真實 Google 驗收；不會向線上服務自動投稿。
 
-- `Code.gs`：整份貼入 Google Apps Script 的程式碼檔，只替換最上方的資料夾 ID。資料夾 ID 不必提交到公開儲存庫。
-- `Index.html`：整份貼入 Google 專案名為 **Index** 的 HTML 檔，這份才是完整遊戲與收件視窗，不能只保留預設空白 HTML。
-
-儲存後到「部署 → 管理部署作業 → 編輯 → 新版本 → 部署」。執行身分選「我」，存取選「所有人」，完成自己的 Google 授權。用未登入的無痕視窗測試 `/exec` 網址，確定有遊戲畫面，送一份測試關卡，再確認雲端資料夾確實收到 JSON。這一步完成才算雲端投稿啟用成功。
-
-更新 GitHub 遊戲不會自動更新 Google 專案。純畫面變更可以只更新 GitHub；若關卡 JSON 格式、道具種類或尺寸改動，Google 的 `Code.gs` 驗證與 `Index.html` 也要一起更新、部署。Google 網址改變時修改 `config.json` 並重建網站。
-
-Google 資料夾保持私人，不要把任何密碼、權杖或投稿者資料上傳到這個公開專案。此專案未選用開放原始碼授權；公開可讀不代表授權任意再利用。
-
-## 開發檢查
-
-網站本身無執行依賴。要跑瀏覽器測試才需安裝開發套件與瀏覽器：
-
-```sh
-npm install
-npx playwright install chromium
-npm test
-```
-
-可用 `BROWSER_CHANNEL=msedge` 選用本機 Edge。測試包括示範關卡匯入、原有過關路線、JSON 匯出與投稿入口；不會實際送出 Google 投稿。
+本輪未加入 v9 二十關、AI 解題、評分、排行榜、留言或教師逐關審核。公開可讀並不代表另行授予開放原始碼授權。

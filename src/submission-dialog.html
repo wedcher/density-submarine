@@ -1,0 +1,12 @@
+<dialog id="submissionDialog" aria-labelledby="submissionTitle">
+ <form id="submissionForm">
+  <h2 id="submissionTitle">投稿給同學遊玩</h2>
+  <p>關卡名稱、暱稱與地圖會公開在同學關卡清單。請使用暱稱，不填真實姓名、電話或聯絡資料。投稿不需登入。</p>
+  <label>作者暱稱（必填）<input id="submissionAuthor" maxlength="40" required autocomplete="off"></label>
+  <label>設計想法（選填，供收件者保存）<textarea id="submissionNote" maxlength="1000" rows="3"></textarea></label>
+  <div class="submission-trap" aria-hidden="true"><input id="submissionWebsite" tabindex="-1" autocomplete="off" aria-label="請留白"></div>
+  <label><input id="submissionConsent" type="checkbox" required>我同意公開暱稱與關卡，供其他同學遊玩。</label>
+  <p id="submissionStatus" role="status" aria-live="polite"></p>
+  <div class="submission-actions"><button id="submissionClose" type="button">關閉</button><button id="submissionSend" type="submit">送出投稿</button></div>
+ </form>
+</dialog>

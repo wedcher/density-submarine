@@ -77,7 +77,7 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 <div class="group right"><button id="vPlus">V＋</button><button id="vMinus">V－</button><button id="mMinus">丟 M</button></div>
 </div>
 <div class="msg" id="msg"></div><div class="answer" id="answer"></div>
-<div class="note">← → 移動；↑ ↓ 在相同密度層內移動；Num ＋／－ 改 V；Num ＊ 丟 M。直向入口至少 2 格寬。新關卡初始 M=1、V=1，匯入時沿用檔案設定。半格岩石為 1 格寬 × 0.5 格高，依點擊位置對齊上／下半格；小艇仍需 1 格高的通道。</div>
+<div class="note">← → 移動；↑ ↓ 在相同密度層內移動；Num ＋／－ 改 V；Num ＊ 丟 M。通道依當下船身尺寸判定；投稿前須自行通關。新關卡初始 M=1、V=1，匯入時沿用檔案設定。半格岩石為 1 格寬 × 0.5 格高，依點擊位置對齊上／下半格；小艇仍需 1 格高的通道。</div>
 </div>
 <script>
 const densityStyles={
@@ -264,8 +264,7 @@ $('exportBtn').onclick=async()=>{
 };
 $('importBtn').onclick=()=>{if(mode==='edit')$('importFile').click()};
 $('importFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>200000)throw Error();importLevelText(await file.text())}catch(error){msg.textContent='無法讀取關卡，請選擇有效的 JSON 檔。'}};
-function narrowEntry(){for(let r=1;r<ROWS-1;r++){for(let c=0;c<COLS;c++){if(map[r][c]==='rock')continue;const left=c===0||map[r][c-1]==='rock',right=c===COLS-1||map[r][c+1]==='rock';if(left&&right&&r>1&&r<ROWS-2&&map[r-1][c]!=='rock'&&map[r+1][c]!=='rock')return true}}return false}
-function toggleMode(){if(mode==='edit'){build();if(!state||!goalPos){msg.textContent='請先放置小艇與終點。';return}if(narrowEntry()){msg.textContent='有只有 1 格寬的直向通道；請拓寬到至少 2 格再試玩。';return}if(blocked(state.x,state.y)){msg.textContent='小艇起點空間不足，請移動起點或清除周圍岩石。';return}mode='play';msg.textContent='試玩中：調整 M / V，利用密度抵達終點。'}else{mode='edit';build();msg.textContent='已回編輯，原地圖與道具完整保留。'}stage.classList.toggle('editing',mode==='edit');$('tools').hidden=mode==='play';$('tools').style.display=mode==='play'?'none':'contents';$('clearBtn').hidden=mode==='play';$('restartBtn').hidden=mode==='edit';$('modeBtn').textContent=mode==='edit'?'試玩':'回編輯';$('modeLabel').textContent=mode==='edit'?'編輯模式｜每格 40 × 40':'試玩模式';syncTools();render()}
+function toggleMode(){if(mode==='edit'){build();if(!state||!goalPos){msg.textContent='請先放置小艇與終點。';return}if(blocked(state.x,state.y)){msg.textContent='小艇起點空間不足，請移動起點或清除周圍岩石。';return}mode='play';msg.textContent='試玩中：調整 M / V，利用密度抵達終點。'}else{mode='edit';build();msg.textContent='已回編輯，原地圖與道具完整保留。'}stage.classList.toggle('editing',mode==='edit');$('tools').hidden=mode==='play';$('tools').style.display=mode==='play'?'none':'contents';$('clearBtn').hidden=mode==='play';$('restartBtn').hidden=mode==='edit';$('modeBtn').textContent=mode==='edit'?'試玩':'回編輯';$('modeLabel').textContent=mode==='edit'?'編輯模式｜每格 40 × 40':'試玩模式';syncTools();render()}
 $('modeBtn').onclick=toggleMode;$('clearBtn').onclick=()=>{if(mode!=='edit')return;map=Array.from({length:ROWS},()=>Array(COLS).fill(null));halfRocks=[];build();msg.textContent='已清空；上下岩石與四層液體保留。'};$('restartBtn').onclick=()=>{build();msg.textContent='已重新試玩。'};
 $('left').onclick=()=>moveX(-24);$('right').onclick=()=>moveX(24);$('up').onclick=()=>moveY(-1);$('down').onclick=()=>moveY(1);$('vPlus').onclick=()=>changeV(true);$('vMinus').onclick=()=>changeV(false);$('mMinus').onclick=dropM;
 window.addEventListener('keydown',e=>{const action={ArrowLeft:()=>moveX(-24),ArrowRight:()=>moveX(24),ArrowUp:()=>moveY(-1),ArrowDown:()=>moveY(1),NumpadAdd:()=>changeV(true),NumpadSubtract:()=>changeV(false),NumpadMultiply:dropM}[e.code];if(action&&mode==='play'){e.preventDefault();action()}});
