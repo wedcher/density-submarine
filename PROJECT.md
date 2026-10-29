@@ -77,3 +77,11 @@ npm test 執行瀏覽器、後端及通道測試。測試需 Playwright Chromium
 再次唯讀讀取原 /exec：HTTP 200，函式仍是 doGet、submitLevel，舊遊戲 HTML 32803 字元，沒有 density-ready 橋接。第 4～6 項仍待真實 Google 部署及驗收，進度維持 3／6。
 
 擁有者下一步只需從更新教學複製完整 Code.gs；後續才貼到原專案、儲存與更新同一部署新版本，完成 Google 試算表授權。保留原網址、收件資料夾與既有工作表資料；若發現舊表格式不同，會在同一試算表內另用工作表，不清空或覆寫舊資料。
+
+## 最新真實部署檢查（台北時間 2026-10-29 14:59）
+
+使用者已更新同一 Google 部署。唯讀確認原 /exec 現已公開 doGet、submitLevel、listLevels、getLevel，回傳 density-ready 背景橋接，不再是舊遊戲頁。
+
+實際在未登入 Google 的全新瀏覽器 context 開啟正式 GitHub 網站：背景連線及 listLevels RPC 已到達 Google，但服務回傳「Google 收件服務尚未就緒」。尚未確認原始錯誤；需擁有者在 Apps Script 編輯器執行 listLevels，觸發所需試算表授權或查看執行紀錄。測試在送件前停止，未新增、刪除任何投稿。這是實際雲端失敗結果，不是模擬。
+
+進度維持 3／6：第 4 項已完成新版部署及匿名橋接連通，但試算表存取與真實收件未完成；第 5、6 項仍待完成實際流程。下一步為 Google 帳號內執行 listLevels；不需要再修改程式或重建部署。
