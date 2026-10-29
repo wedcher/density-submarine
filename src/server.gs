@@ -6,8 +6,9 @@ function doGet(e){
  if(origin!=='https://wedcher.github.io'&&!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))throw Error('不支援的遊戲來源');
  const channel=e&&e.parameter&&e.parameter.channel||'';
  if(channel&&!/^[a-zA-Z0-9-]{1,80}$/.test(channel))throw Error('連線資料不正確');
- const template=HtmlService.createTemplateFromFile('Index');template.bridgeConfig=JSON.stringify({origin,channel});
- return template.evaluate().setTitle('密度小艇｜關卡資料服務').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+ // The generated Code.gs includes this small bridge, so only one file needs pasting.
+ const html=BRIDGE_HTML_.replace('<?!= bridgeConfig ?>',JSON.stringify({origin,channel}));
+ return HtmlService.createHtmlOutput(html).setTitle('密度小艇｜關卡資料服務').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 function withSheet_(callback){
  const lock=LockService.getScriptLock();if(!lock.tryLock(10000))return {ok:false,message:'目前較多人連線，請稍後重試。'};
@@ -15,7 +16,11 @@ function withSheet_(callback){
   const props=PropertiesService.getScriptProperties();let id=props.getProperty(SHEET_PROPERTY_),book;
   if(id)book=SpreadsheetApp.openById(id);
   else{book=SpreadsheetApp.create('密度小艇投稿（試算表）');props.setProperty(SHEET_PROPERTY_,book.getId());}
-  const sheet=book.getSheets()[0];if(sheet.getLastRow()===0){sheet.getRange(1,1,1,HEADER_.length).setValues([HEADER_]);sheet.setFrozenRows(1);}
+  const sheets=book.getSheets();
+  let sheet=sheets.find(candidate=>candidate.getLastRow()>0&&JSON.stringify(candidate.getRange(1,1,1,HEADER_.length).getValues()[0])===JSON.stringify(HEADER_));
+  if(!sheet)sheet=sheets.find(candidate=>candidate.getLastRow()===0);
+  if(!sheet){let suffix=0,name='密度小艇投稿';while(sheets.some(candidate=>candidate.getName()===name))name='密度小艇投稿_'+(++suffix);sheet=book.insertSheet(name);}
+  if(sheet.getLastRow()===0){sheet.getRange(1,1,1,HEADER_.length).setValues([HEADER_]);sheet.setFrozenRows(1);}
   return callback(sheet);
  }catch(error){console.error(String(error));return {ok:false,message:'Google 收件服務尚未就緒。請先保存關卡，並通知老師完成部署與試算表授權。'};}
  finally{lock.releaseLock();}

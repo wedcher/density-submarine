@@ -1,5 +1,6 @@
 const COLS=25,ROWS=14,FORMAT='density-submarine-level',RULES='density-lock-v1';
 const EXPECTED_LEVEL_={"grid":{"columns":25,"rows":14,"cellPixels":40,"halfRowsPerCell":2,"fixedRockRows":[0,13]},"liquids":[{"density":0.25,"topHalfRow":2,"bottomHalfRow":8},{"density":0.5,"topHalfRow":8,"bottomHalfRow":14},{"density":1,"topHalfRow":14,"bottomHalfRow":20},{"density":2,"topHalfRow":20,"bottomHalfRow":26}]};
+const BRIDGE_HTML_="<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><base target=\"_top\"></head>\n<body><p>這是密度小艇的投稿與關卡資料服務。請從原本的遊戲網站遊玩與投稿。</p>\n<script>\nconst config = <?!= bridgeConfig ?>;\nwindow.addEventListener('message',event=>{\n const m=event.data;if(event.source!==window.top||event.origin!==config.origin||!m||m.type!=='density-request'||m.version!==2||m.channel!==config.channel||typeof m.id!=='string')return;\n const reply=result=>window.top.postMessage({type:'density-response',channel:config.channel,id:m.id,result},config.origin);\n const runner=google.script.run.withSuccessHandler(reply).withFailureHandler(()=>reply({ok:false,message:'Google 收件服務無法回覆，請稍後重試。'}));\n if(m.action==='list')runner.listLevels();else if(m.action==='get')runner.getLevel(m.payload);else if(m.action==='submit')runner.submitLevel(m.payload);\n});\nwindow.top.postMessage({type:'density-ready',version:2,channel:config.channel},config.origin);\n</script></body></html>\n";
 const MAX_DAILY_SUBMISSIONS=100;
 const SHEET_PROPERTY_='DENSITY_CLASSROOM_SHEET_ID';
 const HEADER_=['投稿編號','投稿時間','關卡名稱（JSON文字）','暱稱（JSON文字）','想法（JSON文字）','內容摘要','關卡JSON_1','關卡JSON_2','關卡JSON_3','關卡JSON_4','關卡JSON_5'];
@@ -8,8 +9,9 @@ function doGet(e){
  if(origin!=='https://wedcher.github.io'&&!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))throw Error('不支援的遊戲來源');
  const channel=e&&e.parameter&&e.parameter.channel||'';
  if(channel&&!/^[a-zA-Z0-9-]{1,80}$/.test(channel))throw Error('連線資料不正確');
- const template=HtmlService.createTemplateFromFile('Index');template.bridgeConfig=JSON.stringify({origin,channel});
- return template.evaluate().setTitle('密度小艇｜關卡資料服務').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+ // The generated Code.gs includes this small bridge, so only one file needs pasting.
+ const html=BRIDGE_HTML_.replace('<?!= bridgeConfig ?>',JSON.stringify({origin,channel}));
+ return HtmlService.createHtmlOutput(html).setTitle('密度小艇｜關卡資料服務').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 function withSheet_(callback){
  const lock=LockService.getScriptLock();if(!lock.tryLock(10000))return {ok:false,message:'目前較多人連線，請稍後重試。'};
@@ -17,7 +19,11 @@ function withSheet_(callback){
   const props=PropertiesService.getScriptProperties();let id=props.getProperty(SHEET_PROPERTY_),book;
   if(id)book=SpreadsheetApp.openById(id);
   else{book=SpreadsheetApp.create('密度小艇投稿（試算表）');props.setProperty(SHEET_PROPERTY_,book.getId());}
-  const sheet=book.getSheets()[0];if(sheet.getLastRow()===0){sheet.getRange(1,1,1,HEADER_.length).setValues([HEADER_]);sheet.setFrozenRows(1);}
+  const sheets=book.getSheets();
+  let sheet=sheets.find(candidate=>candidate.getLastRow()>0&&JSON.stringify(candidate.getRange(1,1,1,HEADER_.length).getValues()[0])===JSON.stringify(HEADER_));
+  if(!sheet)sheet=sheets.find(candidate=>candidate.getLastRow()===0);
+  if(!sheet){let suffix=0,name='密度小艇投稿';while(sheets.some(candidate=>candidate.getName()===name))name='密度小艇投稿_'+(++suffix);sheet=book.insertSheet(name);}
+  if(sheet.getLastRow()===0){sheet.getRange(1,1,1,HEADER_.length).setValues([HEADER_]);sheet.setFrozenRows(1);}
   return callback(sheet);
  }catch(error){console.error(String(error));return {ok:false,message:'Google 收件服務尚未就緒。請先保存關卡，並通知老師完成部署與試算表授權。'};}
  finally{lock.releaseLock();}

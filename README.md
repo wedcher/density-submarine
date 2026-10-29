@@ -14,7 +14,7 @@ Google Apps Script 是背景後端，將合法投稿存進私人 Google 試算�
 
 ## Google 設定
 
-開啟 google-apps-script/更新Google遊戲.html，按按鈕複製完整 Code.gs 和 Index.html，到現有 Google 專案的對應檔案全選貼上、儲存，再更新部署新版本；以我執行、所有人可存取，完成試算表授權。不用填寫資料夾或試算表 ID。Google 的 Index.html 是資料連線頁，並不是另一個遊戲。
+開啟 google-apps-script/更新Google遊戲.html，只需複製完整 Code.gs，到現有 Google 專案的程式碼檔全選貼上、儲存，再更新同一部署的新版本；以我執行、所有人可存取，完成試算表授權。不用填寫資料夾或試算表 ID。背景資料連線頁已內嵌在 Code.gs，原本 Index.html 可保留，不必更新。程式優先重用已記錄的試算表；舊格式工作表不覆寫或刪除。
 
 用未登入的無痕視窗確認首頁清單載入，設計一關並通關後投稿，再用另一個視窗刷新清單、載入及通關，才完成真實上課驗收。
 

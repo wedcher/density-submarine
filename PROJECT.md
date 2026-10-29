@@ -2,7 +2,7 @@
 
 ## 正式來源與規格
 
-正式遊戲核心為 `src/editor.html`，源自本機 `D:\MyApp\density_submarine_codex_handoff\density_submarine_editor_v2.html`，含通道對齊修正。已確認的課堂需求記於 [SPEC.md](SPEC.md)，遇到設計取捨須先詢問使用者。
+正式遊戲核心為 `src/editor.html`，源自本機 `D:\MyApp\density_submarine_codex_handoff\density_submarine_editor_v2.html`，含通道對齊修正。已確認的課堂需求記於 [SPEC.md](SPEC.md)，一般技術修正、測試、提交與發布已獲使用者授權自主執行；不得擅自改變遊戲規則或教學設計。
 
 原始歷史 HTML 保留，不作日常維護入口。首次發布 `266cf16` 曾使用 before_clearance_fix；`eaca833` 已改正並完成線上比對。本輪延續含修正的核心，不回退。
 
@@ -23,13 +23,13 @@
 | src/submission-dialog.html | 暱稱、公開同意與投稿表單 |
 | index.html | 唯一學生遊戲 HTML，由建置產生，預設正常遊戲 |
 | src/server.gs | 試算表收件、清單、單關讀取；自動建立並記住專用試算表 |
-| src/backend-bridge.html | Google 背景連線模板，不含遊戲或編輯器 |
-| google-apps-script/Code.gs、Index.html | 準備給擁有者完整貼入 Google 的後端與橋接產物，非第二份遊戲 |
+| src/backend-bridge.html | Google 背景連線模板，建置時內嵌到 Code.gs，不含遊戲或編輯器 |
+| google-apps-script/Code.gs | 完整單檔後端，包含橋接頁；只需貼這一份到既有 Google 程式碼檔 |
 | google-apps-script/更新Google遊戲.html | 複製完整程式的逐步教學，無需自行修改 ID 或程式 |
 | levels/、levels/sources.json | 使用者指定的五題與原始檔 SHA-256；原先五關已移到 tests/fixtures 作回歸資料 |
 | config.json | 原 Google /exec 後端網址，不放憑證 |
 
-Google 只需部署後端兩檔。試算表在首次成功呼叫時自動建立為「密度小艇投稿（試算表）」，保留私人權限，透過 API 供學生取得關卡名稱、暱稱與地圖。想法不回傳清單。新投稿直接可讀，不需 GitHub 再部署、評分或老師審核。
+Google 現在只需更新單一 Code.gs，原本 Index.html 可保留、不必替換。程式沿用既有 DENSITY_CLASSROOM_SHEET_ID；未設定時才在首次成功呼叫建立「密度小艇投稿（試算表）」，保留私人權限，透過 API 供學生取得關卡名稱、暱稱與地圖。想法不回傳清單。新投稿直接可讀，不需 GitHub 再部署、評分或老師審核。
 
 目前已知的舊 Drive JSON 不會自動搬入新試算表。Google 部署權限須保持以擁有者執行、所有人存取，並重新授權試算表範圍。Google 端授權、匿名連線、第三方框架環境和實際寫入均需線上驗收。
 
@@ -49,7 +49,7 @@ Google 只需部署後端兩檔。試算表在首次成功呼叫時自動建立�
 
 追加實測：學生自己設計一格寬通道，試玩通關後可投稿，另一個獨立學生身分可讀取並通關；不再有窄通道啟動攔截，但碰撞仍阻擋實際比船身窄的開口。
 
-後端以模擬 SpreadsheetApp 測試：自動建立、成功收件、去重、新投稿排序、暱稱顯示、地圖讀取、欄位驗證、試算表公式文字處理、寫入失敗與重試。這些不等於 Google 線上實測。
+後端通過 12 項模擬 SpreadsheetApp 檢查，包含既有試算表重用、非相容資料工作表保留、無法存取時不改用新表、單檔 Code.gs 直接提供橋接；以及自動建立、成功收件、去重、新投稿排序、暱稱顯示、地圖讀取、欄位驗證、試算表公式文字處理、寫入失敗與重試。這些不等於 Google 線上實測。
 
 | 項目 | 狀態 | 證據或待驗收內容 |
 | --- | --- | --- |
@@ -65,7 +65,15 @@ Google 只需部署後端兩檔。試算表在首次成功呼叫時自動建立�
 ## 建置與跨電腦更新
 
 
-pm run build` 產生學生 HTML 與 Google 後端產物，
-pm test` 執行瀏覽器、後端及通道測試。測試需 Playwright Chromium，或設定 BROWSER_CHANNEL=msedge。輸出在忽略的 test-results/。
+執行 npm run build 產生學生 HTML 與 Google 後端產物，
+npm test 執行瀏覽器、後端及通道測試。測試需 Playwright Chromium，或設定 BROWSER_CHANNEL=msedge。輸出在忽略的 test-results/。
 
 開始前 git pull --ff-only，修改來源、建置及測試後提交並 push。GitHub Pages 網址固定：https://wedcher.github.io/density-submarine/ 。Google 更新需另外貼入程式並重新部署。公開儲存庫不放權杖、私人試算表 ID、投稿內容或登入憑證。
+
+## 本輪自主檢查與下一個依賴
+
+已透過 Google Drive 連線辨識同帳號的既有 Apps Script 專案與原收件資料夾；依密度相關名稱及試算表 MIME 搜尋未找到可確認的現有投稿試算表，不能宣稱已建立或沿用真實試算表。本機沒有 clasp 授權檔，Drive 連線也不提供 Apps Script 程式更新／部署能力。沒有擷取瀏覽器憑證或另建 Google 專案。
+
+再次唯讀讀取原 /exec：HTTP 200，函式仍是 doGet、submitLevel，舊遊戲 HTML 32803 字元，沒有 density-ready 橋接。第 4～6 項仍待真實 Google 部署及驗收，進度維持 3／6。
+
+擁有者下一步只需從更新教學複製完整 Code.gs；後續才貼到原專案、儲存與更新同一部署新版本，完成 Google 試算表授權。保留原網址、收件資料夾與既有工作表資料；若發現舊表格式不同，會在同一試算表內另用工作表，不清空或覆寫舊資料。
