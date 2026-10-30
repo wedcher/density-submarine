@@ -12,7 +12,6 @@ html=html.replace('<title>密度小艇｜地圖編輯器 v2</title>','<title>密
  .replace('</style>',read('src/classroom.css')+'\n</style>')
  .replace('<div class="toolbar compact-toolbar" id="materialRow">',read('src/classroom-ui.html')+'\n<div class="toolbar compact-toolbar" id="materialRow">')
  .replace('<script>',read('src/submission-dialog.html')+'\n<script>')
- .replace("if(action&&mode==='play')","if(action&&mode==='play'&&!$('submissionDialog').open&&!e.target.closest('input,textarea,select,[contenteditable]'))")
  .replace('</script></body></html>',script+'\n</script></body></html>');
 fs.writeFileSync(path.join(root,'index.html'),html);
 console.log('Built one classroom game with '+levels.length+' official levels.');

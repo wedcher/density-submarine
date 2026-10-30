@@ -8,3 +8,5 @@ body[data-view="play"] #backToPlay{display:none}
 #submissionDialog{max-width:520px;width:calc(100vw - 28px);max-height:90vh;overflow:auto;padding:22px;border:2px solid #243139;border-radius:14px;background:#fffdfa;color:#243139;line-height:1.7}
 #submissionDialog::backdrop{background:#14212a88}#submissionDialog h2{margin-top:0}#submissionForm>label{display:block;margin:12px 0}#submissionAuthor,#submissionNote{display:block;width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #bfb6a8;border-radius:7px}#submissionStatus{white-space:pre-wrap;overflow-wrap:anywhere}.submission-actions{display:flex;gap:8px;justify-content:flex-end}.submission-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
 #backendBridge{display:none}#submitBtn{background:#ffdf83}#qualificationStatus{font-weight:bold}
+
+#officialLevels button.selected{background:#ffe164;color:#302600;border-color:#8c6d00;box-shadow:inset 0 0 0 2px #8c6d00;font-weight:bold}

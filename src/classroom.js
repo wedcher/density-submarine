@@ -42,7 +42,7 @@ function loadInPlace(data,view){
 }
 function playLevel(data,title){
  const previous=currentGame;
- try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent='正在遊玩：'+title;msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
+ try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent='正在遊玩：'+title;for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
  catch(error){if(!previous)throw error;loadInPlace(previous.data,'play');currentGame=previous;msg.textContent='無法開始「'+title+'」：'+error.message;return false;}
 }
 $('designEntry').onclick=()=>{
@@ -55,7 +55,7 @@ $('backToPlay').onclick=()=>{
  const game=currentGame||{data:EXAMPLE_LEVELS[0],title:EXAMPLE_LEVELS[0].name};playLevel(game.data,game.title);refreshCommunity();
 };
 $('playRestart').onclick=()=>{if(currentGame)playLevel(currentGame.data,currentGame.title);};
-for(const data of EXAMPLE_LEVELS){const button=document.createElement('button');button.textContent=data.name;button.onclick=()=>playLevel(data,data.name);$('officialLevels').appendChild(button);}
+for(const data of EXAMPLE_LEVELS){const button=document.createElement('button');button.textContent=data.name;button.dataset.officialName=data.name;button.onclick=()=>playLevel(data,data.name);$('officialLevels').appendChild(button);}
 async function refreshCommunity(){
  const revision=++listRevision;$('communityRefresh').disabled=true;$('communityStatus').textContent='正在讀取同學關卡…';
  try{
