@@ -42,7 +42,14 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 #stage.half-grid:after{background-size:40px 20px}
 .toolbar label{align-self:center;font-size:14px}
 .compact-toolbar{gap:6px;align-items:center;margin:7px 0}.compact-toolbar button{flex-shrink:0;white-space:nowrap;padding:8px 10px}
-.tool-group{display:contents}.toolbar-hint{font-size:12px;white-space:nowrap;opacity:.75}
+.tool-group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.toolbar-hint{font-size:12px;opacity:.75}
+#materialRow{align-items:stretch;flex-direction:column;padding:10px;background:#fffdfa;border:2px solid #d7d0c5;border-radius:12px}
+.editor-cluster{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 9px;background:#f3f0e8;border-radius:9px}
+.cluster-label{font-size:12px;font-weight:bold;color:#625c50;margin-right:2px}.tool-icon{display:inline-block;margin-right:5px;font-size:16px;line-height:1;vertical-align:middle}
+#doodleTools{border-top:1px dashed #c8c0b3;padding-top:9px}#doodleTools button{font-weight:normal;background:#fffdfa}#doodleTools button.active{background:var(--ink);color:white}
+#levelRow{padding:10px;background:#fffdfa;border:2px solid #d7d0c5;border-radius:12px;gap:10px}.editor-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#modeBtn{background:#ffe164}#clearBtn{color:#9b3027;border-color:#b57b75}
+@media(max-width:600px){#tools .editor-cluster{width:100%}.level-name{width:100%}#levelName{flex:1;max-width:none;min-width:0}#doodleTools .toolbar-hint{width:100%}.editor-actions{width:100%}}
 .level-name{display:flex;align-items:center;white-space:nowrap;gap:4px}
 #levelName{width:190px;max-width:55vw;min-width:120px;padding:7px 9px;border:2px solid #bfb6a8;border-radius:8px;font:inherit;background:#fff}
 #modeLabel{font-size:13px;white-space:nowrap}
@@ -58,12 +65,12 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 <div class="header"><h1>密度小艇｜地圖編輯器 v2</h1><div>先選工具，再點格子放置；岩石與橡皮擦可拖曳</div></div>
 <div class="toolbar compact-toolbar" id="materialRow">
 <div id="tools" class="tool-group" aria-label="正式關卡工具"></div>
-<div id="doodleTools" class="tool-group" aria-label="規畫塗鴉工具"><button id="doodlePen">塗鴉筆</button><button id="doodleErase">塗鴉橡皮擦</button><button id="doodleClear">清空塗鴉</button><span class="toolbar-hint">塗鴉不匯出，試玩時暫時隱藏。</span></div>
+<div id="doodleTools" class="tool-group" aria-label="規畫塗鴉工具"><span class="cluster-label">規畫塗鴉</span><button id="doodlePen"><span class="tool-icon" aria-hidden="true">✏️</span>塗鴉筆</button><button id="doodleErase"><span class="tool-icon" aria-hidden="true">⌫</span>擦除塗鴉</button><button id="doodleClear"><span class="tool-icon" aria-hidden="true">🧹</span>清空塗鴉</button><span class="toolbar-hint">只作筆記，不匯出；試玩時隱藏。</span></div>
 </div>
 <div class="toolbar compact-toolbar" id="levelRow">
-<label class="level-name">關卡名稱：<input id="levelName" type="text" maxlength="120" placeholder="未命名關卡" autocomplete="off"></label>
-<button id="exportBtn">匯出關卡</button><button id="importBtn">匯入關卡</button><input id="importFile" type="file" accept=".json,application/json" hidden>
-<button id="clearBtn">清空</button><button id="modeBtn">試玩</button><button id="restartBtn" hidden>重新試玩</button><span id="modeLabel">編輯模式｜每格 40 × 40</span>
+<label class="level-name"><span aria-hidden="true">🏷️</span>關卡名稱：<input id="levelName" type="text" maxlength="120" placeholder="未命名關卡" autocomplete="off"></label>
+<div class="editor-actions" role="group" aria-label="試玩操作"><button id="modeBtn">▶ 試玩</button><button id="restartBtn" hidden>↻ 重新試玩</button></div>
+<div class="editor-actions" role="group" aria-label="關卡檔案"><button id="exportBtn"><span class="tool-icon" aria-hidden="true">📤</span>匯出關卡</button><button id="importBtn"><span class="tool-icon" aria-hidden="true">📂</span>匯入關卡</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="clearBtn"><span class="tool-icon" aria-hidden="true">🗑️</span>清空地圖</button></div><span id="modeLabel">編輯模式｜每格 40 × 40</span>
 </div>
 <div class="hud"><div>質量 M：<span class="massDots" id="massDots"></span></div><div id="hudStatus"></div></div>
 <div class="stageWrap"><div id="stage">
@@ -206,10 +213,20 @@ function syncTools(){
  document.querySelectorAll('#tools button').forEach(b=>b.classList.toggle('active',!doodleTool&&b.dataset.tool===tool));
  $('doodlePen').classList.toggle('active',doodleTool==='pen');$('doodleErase').classList.toggle('active',doodleTool==='erase');
  canvas.classList.toggle('drawing',mode==='edit'&&!!doodleTool);
- canvas.hidden=mode==='play';$('doodleTools').style.display=mode==='edit'?'contents':'none';
+ canvas.hidden=mode==='play';$('doodleTools').style.display=mode==='edit'?'flex':'none';
  $('importBtn').disabled=mode==='play';$('levelName').disabled=mode==='play';stage.classList.toggle('half-grid',!doodleTool&&tool==='halfRock');
 }
-[['rock','岩石'],['halfRock','半格岩石'],['boat','小艇'],['goal','終點'],['mass','M+'],['key','鑰匙'],['door','門'],['erase','橡皮擦']].forEach(([id,label])=>{const b=document.createElement('button');b.textContent=label;b.dataset.tool=id;b.classList.toggle('active',id===tool);b.onclick=()=>selectTool(id);$('tools').appendChild(b)});
+[
+ ['起終點',[['boat','🚤','小艇'],['goal','🚩','終點']]],
+ ['地形',[['rock','🪨','岩石'],['halfRock','◧','半格岩石']]],
+ ['道具',[['mass','⚖️','M+'],['key','🔑','鑰匙'],['door','🚪','門']]],
+ ['修改',[['erase','⌫','橡皮擦']]]
+].forEach(([name,tools])=>{
+ const group=document.createElement('div');group.className='editor-cluster';group.setAttribute('role','group');group.setAttribute('aria-label',name);
+ const heading=document.createElement('span');heading.className='cluster-label';heading.textContent=name;group.appendChild(heading);
+ tools.forEach(([id,icon,label])=>{const b=document.createElement('button'),symbol=document.createElement('span');symbol.className='tool-icon';symbol.setAttribute('aria-hidden','true');symbol.textContent=icon;b.append(symbol,document.createTextNode(label));b.dataset.tool=id;b.classList.toggle('active',id===tool);b.onclick=()=>selectTool(id);group.appendChild(b)});
+ $('tools').appendChild(group);
+});
 // This canvas is purely visual. No game or serialization function reads its pixels.
 const canvas=$('doodleCanvas'),ink=canvas.getContext('2d');
 let doodleTool=null,doodleLast=null,doodlePointer=null;
@@ -280,7 +297,7 @@ $('exportBtn').onclick=async()=>{
 };
 $('importBtn').onclick=()=>{if(mode==='edit')$('importFile').click()};
 $('importFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>200000)throw Error();importLevelText(await file.text())}catch(error){msg.textContent='無法讀取關卡，請選擇有效的 JSON 檔。'}};
-function toggleMode(){if(mode==='edit'){build();if(!state||!goalPos){msg.textContent='請先放置小艇與終點。';return}if(blocked(state.x,state.y)){msg.textContent='小艇起點空間不足，請移動起點或清除周圍岩石。';return}mode='play';msg.textContent='試玩中：調整 M / V，利用密度抵達終點。'}else{mode='edit';build();msg.textContent='已回編輯，原地圖與道具完整保留。'}stage.classList.toggle('editing',mode==='edit');$('tools').hidden=mode==='play';$('tools').style.display=mode==='play'?'none':'contents';$('clearBtn').hidden=mode==='play';$('restartBtn').hidden=mode==='edit';$('modeBtn').textContent=mode==='edit'?'試玩':'回編輯';$('modeLabel').textContent=mode==='edit'?'編輯模式｜每格 40 × 40':'試玩模式';syncTools();render()}
+function toggleMode(){if(mode==='edit'){build();if(!state||!goalPos){msg.textContent='請先放置小艇與終點。';return}if(blocked(state.x,state.y)){msg.textContent='小艇起點空間不足，請移動起點或清除周圍岩石。';return}mode='play';msg.textContent='試玩中：調整 M / V，利用密度抵達終點。'}else{mode='edit';build();msg.textContent='已回編輯，原地圖與道具完整保留。'}stage.classList.toggle('editing',mode==='edit');$('tools').hidden=mode==='play';$('tools').style.display=mode==='play'?'none':'flex';$('clearBtn').hidden=mode==='play';$('restartBtn').hidden=mode==='edit';$('modeBtn').textContent=mode==='edit'?'▶ 試玩':'✎ 回編輯';$('modeLabel').textContent=mode==='edit'?'編輯模式｜每格 40 × 40':'試玩模式';syncTools();render()}
 $('modeBtn').onclick=toggleMode;$('clearBtn').onclick=()=>{if(mode!=='edit')return;map=Array.from({length:ROWS},()=>Array(COLS).fill(null));halfRocks=[];build();msg.textContent='已清空；上下岩石與四層液體保留。'};$('restartBtn').onclick=()=>{build();msg.textContent='已重新試玩。'};
 $('left').onclick=()=>moveX(-24);$('right').onclick=()=>moveX(24);$('up').onclick=()=>moveY(-1);$('down').onclick=()=>moveY(1);$('vPlus').onclick=()=>changeV(true);$('vMinus').onclick=()=>changeV(false);$('mMinus').onclick=dropM;
 // Keyboard-only coast: 160/110 px per second, ~13/9 px release travel.
