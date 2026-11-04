@@ -63,6 +63,7 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 #hudStatus{column-gap:1em}
 .key-count .key-icon{width:1.25em;height:1.25em}
 .layer .tag{font-size:var(--layer-label-size,16px);line-height:1.1;white-space:nowrap}
+.formulaCard{width:calc(var(--boat-formula-size,22px)*10.45);height:calc(var(--boat-formula-size,22px)*2.91)}.formulaCard .lhs,.formulaCard .eq,.formulaCard .num,.formulaCard .den{font-size:var(--boat-formula-size,22px)}
 .controls button.held{background:#ffe164;box-shadow:inset 0 0 0 2px #8c6d00;transform:translateY(2px)}
 .massDrop{border:2px solid white;box-shadow:0 0 0 2px #243139;animation:massFall .85s ease-in forwards}
 @keyframes massFall{0%{transform:translateY(0);opacity:1}70%{opacity:1}100%{transform:translateY(100px) scale(.7);opacity:0}}
@@ -143,6 +144,20 @@ body[data-view="play"] .note{display:none}
 @media(max-height:300px) and (orientation:landscape){
  body[data-view="play"] .wrap{--pad-key:44px;--action-key:54px;column-gap:8px}
  #playingTitle{font-size:16px}
+}
+
+/* Keep phone controls unchanged; tablets grow only to 1.5 times the old caps. */
+@media (min-width:1000px) and (min-height:600px){
+ body[data-view="play"] .wrap{--pad-key:clamp(58px,5.5vw,87px);--action-key:clamp(68px,6.6vw,102px)}
+}
+/* Large pointer-driven displays scale controls and legends together. */
+@media (min-width:1200px) and (min-height:600px) and (pointer:fine){
+ body[data-view="play"] .wrap{--pad-key:min(5.5vw,12vh);--action-key:min(6.6vw,14vh)}
+}
+@media (min-width:1000px) and (min-height:600px){
+body[data-view="play"] .direction-pad button{font-size:calc(var(--pad-key)*.65)}
+body[data-view="play"] .group.right button{font-size:calc(var(--action-key)*.43)}
+body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
 }
 
 </style>
@@ -272,7 +287,7 @@ function updateDensityReadout(){
 }
 function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=>rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=>!i.taken).forEach(i=>{const element=rect($('itemLayer'),'item '+i.type+(i.type==='door'&&i.open?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M':i.type==='key'?'':i.open?'開':'門');if(i.type==='key'){element.innerHTML=keyIcon();element.setAttribute('role','img');element.setAttribute('aria-label','鑰匙')}});goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
 function build(){resetKeyboardMotion();clearFeedback();boat.classList.remove('celebrate');if($('completionBadge'))$('completionBadge').hidden=true;rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=>row.forEach((type,c)=>{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:0,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=>rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
-function render(){updateDensityReadout();boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').innerHTML=`<span>M=${state.m}　V=${state.v}　D=${fmt(d)}</span> <span class=key-count aria-label="鑰匙：${state.key}把">${keyIcon()}<span>${state.key}</span></span>`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
+function render(){updateDensityReadout();boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(card.offsetWidth/2+3,Math.min(997-card.offsetWidth/2,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').innerHTML=`<span>M=${state.m}　V=${state.v}　D=${fmt(d)}</span> <span class=key-count aria-label="鑰匙：${state.key}把">${keyIcon()}<span>${state.key}</span></span>`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
 // All M/V changes are transactional; resolve collisions in connected nearby water.
 // Reposition only inside the new density region, or horizontally while in transit.
 function changeStats(m,v){
@@ -538,6 +553,7 @@ function fit(){
   hud.style.width=mapWidth*.8+'px';hud.style.marginRight=inset+'px';
   if(heading)heading.style.width=Math.max(0,slot.getBoundingClientRect().left-heading.getBoundingClientRect().left+inset+mapWidth*.2-8)+'px';
  }else{hud.style.width='';hud.style.marginRight='';if(heading)heading.style.width='';}
+ if(playing&&scale>0)stage.style.setProperty('--boat-formula-size',parseFloat(getComputedStyle(hud).fontSize)/scale+'px');else stage.style.removeProperty('--boat-formula-size');
  const title=$('playingTitle');if(playing&&title&&scale>0)stage.style.setProperty('--layer-label-size',parseFloat(getComputedStyle(title).fontSize)/scale+'px');else stage.style.removeProperty('--layer-label-size');
 }
 function readPreference(key,fallback){try{return localStorage.getItem('density-'+key)??fallback}catch{return fallback}}

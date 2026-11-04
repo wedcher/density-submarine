@@ -70,3 +70,17 @@ body[data-view="play"] .note{display:none}
  body[data-view="play"] .wrap{--pad-key:44px;--action-key:54px;column-gap:8px}
  #playingTitle{font-size:16px}
 }
+
+/* Keep phone controls unchanged; tablets grow only to 1.5 times the old caps. */
+@media (min-width:1000px) and (min-height:600px){
+ body[data-view="play"] .wrap{--pad-key:clamp(58px,5.5vw,87px);--action-key:clamp(68px,6.6vw,102px)}
+}
+/* Large pointer-driven displays scale controls and legends together. */
+@media (min-width:1200px) and (min-height:600px) and (pointer:fine){
+ body[data-view="play"] .wrap{--pad-key:min(5.5vw,12vh);--action-key:min(6.6vw,14vh)}
+}
+@media (min-width:1000px) and (min-height:600px){
+body[data-view="play"] .direction-pad button{font-size:calc(var(--pad-key)*.65)}
+body[data-view="play"] .group.right button{font-size:calc(var(--action-key)*.43)}
+body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
+}
