@@ -331,6 +331,8 @@ function stopPointer(id){
 function stopActionPointer(id){const button=actionPointers.get(id);if(!button)return;actionPointers.delete(id);button.classList.remove('held');if(button.hasPointerCapture(id))button.releasePointerCapture(id)}
 function resetPointerMotion(){for(const id of [...heldPointers.keys()])stopPointer(id);for(const id of [...actionPointers.keys()])stopActionPointer(id)}
 function pointerAllowed(){return active()&&!document.querySelector('dialog[open]')}
+// A thumb can drift slightly while holding. Release/cancel still stops at once.
+function withinControl(button,e){const r=button.getBoundingClientRect(),margin=e.pointerType==='mouse'?4:16;return e.clientX>=r.left-margin&&e.clientX<=r.right+margin&&e.clientY>=r.top-margin&&e.clientY<=r.bottom+margin}
 function pointerTick(time){
  pointerFrame=0;if(!pointerAllowed()){resetPointerMotion();return}
  const dt=pointerTime?Math.min(.032,(time-pointerTime)/1000):0;pointerTime=time;
@@ -348,7 +350,7 @@ for(const [id,[dx,dy]] of Object.entries(pointerDirections)){
   heldPointers.set(e.pointerId,{button,dx,dy,repeatAt:performance.now()+150});button.classList.add('held');button.setPointerCapture(e.pointerId);
   tap();if(active()&&heldPointers.size&&!pointerFrame)pointerFrame=requestAnimationFrame(pointerTick);
  });
- button.addEventListener('pointermove',e=>{const r=button.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)stopPointer(e.pointerId)});
+ button.addEventListener('pointermove',e=>{if(!withinControl(button,e))stopPointer(e.pointerId)});
  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,e=>stopPointer(e.pointerId));
  button.addEventListener('contextmenu',e=>e.preventDefault());
  button.onclick=e=>{if(e.detail===0&&pointerAllowed())tap()};
@@ -356,7 +358,7 @@ for(const [id,[dx,dy]] of Object.entries(pointerDirections)){
 // Secondary touches do not reliably produce a click. Handle release explicitly,
 // so a second thumb can change M/V while the first keeps a direction held.
 for(const [id,action] of Object.entries({vPlus:()=>changeV(true),vMinus:()=>changeV(false),mMinus:dropM})){
- const button=$(id),inside=e=>{const r=button.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom};
+ const button=$(id),inside=e=>withinControl(button,e);
  button.addEventListener('pointerdown',e=>{if(e.button!==0||!pointerAllowed())return;e.preventDefault();actionPointers.set(e.pointerId,button);button.classList.add('held');button.setPointerCapture(e.pointerId)});
  button.addEventListener('pointerup',e=>{const pressed=actionPointers.has(e.pointerId);stopActionPointer(e.pointerId);if(pressed&&inside(e)&&pointerAllowed()){e.preventDefault();action()}});
  button.addEventListener('pointermove',e=>{if(!inside(e))stopActionPointer(e.pointerId)});

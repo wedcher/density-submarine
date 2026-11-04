@@ -21,16 +21,16 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   const pausedState=await page.evaluate(()=>JSON.stringify(state));await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>JSON.stringify(state)),pausedState);
   await page.screenshot({path:path.join(artifacts,'mobile-rotate.png')});
   await page.setViewportSize({width:844,height:390});await page.waitForFunction(()=>!playPaused);assert(await page.locator('#homePanel').isHidden());
-  for(const [width,height] of [[844,390],[667,375],[932,430]]){
+  for(const [width,height] of [[844,390],[667,375],[932,430],[844,327],[667,280]]){
    await page.setViewportSize({width,height});await page.waitForTimeout(100);
    const layout=await page.evaluate(()=>{
     const rect=id=>{const {x,y,width,height}=$(id).getBoundingClientRect();return {x,y,width,height}};
     return {stage:rect('stage'),buttons:['left','right','up','down','vPlus','vMinus','mMinus'].map(rect),vw:innerWidth,vh:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight};
    });
+   await page.screenshot({path:path.join(artifacts,`mobile-game-${width}x${height}.png`)});
    for(const r of [layout.stage,...layout.buttons]){assert(r.x>=-1&&r.y>=0&&r.x+r.width<=width+1&&r.y+r.height<=height+1,JSON.stringify({width,height,r}));}
-   assert(layout.buttons.every(b=>b.width>=44&&b.height>=44));assert(layout.scrollWidth<=width);assert(layout.scrollHeight<=height);
+   assert(layout.buttons.every(b=>b.width>=44&&b.height>=44));assert(layout.scrollWidth<=width);assert(layout.scrollHeight<=height,JSON.stringify(layout));
    assert(Math.abs(layout.stage.width/layout.stage.height-1000/560)<.01);
-   await page.screenshot({path:path.join(artifacts,`mobile-game-${width}.png`)});
   }
   console.log('PASS portrait pauses with rotate prompt; 667/844/932 landscape fits entire map and >=44px controls without scrolling');
   await page.setViewportSize({width:844,height:390});await prepare();
@@ -41,6 +41,16 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   await touch('touchStart',[right]);await page.waitForTimeout(200);await touch('touchCancel');const canceled=await x();await page.waitForTimeout(200);assert.equal(await x(),canceled);
   await touch('touchStart',[right]);await page.waitForTimeout(200);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));const blurred=await x();await page.waitForTimeout(200);assert.equal(await x(),blurred);await touch('touchEnd');
   console.log('PASS actual touch hold continues, release/slide-out/cancel/blur stops immediately, no extra click movement');
+  await prepare();const edge=await page.locator('#right').boundingBox();
+  await touch('touchStart',[{x:edge.x+edge.width+2,y:edge.y+edge.height/2}]);assert(await page.locator('#right').evaluate(el=>el.classList.contains('held')));
+  await touch('touchMove',[{x:edge.x+edge.width+9,y:edge.y+edge.height/2}]);const drift=await x();await page.waitForTimeout(300);assert(await x()>drift+15);
+  await touch('touchEnd');const driftEnd=await x();await page.waitForTimeout(160);assert.equal(await x(),driftEnd);
+  await touch('touchStart',[await center('right')]);await page.waitForTimeout(200);await page.setViewportSize({width:844,height:414});const resizeX=await x();await page.waitForTimeout(220);assert(await x()>resizeX+15);await touch('touchEnd');
+  await page.setViewportSize({width:844,height:390});await prepare();
+  const plusEdge=await page.locator('#vPlus').boundingBox();await touch('touchStart',[await center('vPlus')]);await touch('touchMove',[{x:plusEdge.x+plusEdge.width+8,y:plusEdge.y+plusEdge.height/2}]);await touch('touchEnd');assert.equal(await page.evaluate(()=>state.v),2);
+  // A blank part of the page remains inert; expanded targets do not move the boat accidentally.
+  await prepare();const blankStart=await x();await page.touchscreen.tap(10,100);await page.waitForTimeout(200);assert.equal(await x(),blankStart);
+  console.log('PASS enlarged edge hit area, thumb drift tolerance, viewport-height resize keeps hold, action-release tolerance, unrelated blank space inert');
   await prepare();const up=await center('up');await touch('touchStart',[up]);await page.waitForTimeout(350);await touch('touchEnd');const y=await page.evaluate(()=>state.y);assert(y<315);await page.waitForTimeout(160);assert.equal(await page.evaluate(()=>state.y),y);
   // Collision and key/door mechanics are reached through the same touch path.
   await prepare();await page.evaluate(()=>{rocks=[{x:360,y:40,w:40,h:480}];drawWorld()});
@@ -81,6 +91,6 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   const fallback=await restricted.newPage();fallback.on('pageerror',e=>errors.push(e.message));await fallback.goto(site.url);await fallback.locator('#officialLevels button').first().click();await fallback.locator('#swapControls').click();await fallback.locator('#soundToggle').click();
   assert.equal(await fallback.evaluate(()=>appView),'play');assert.deepEqual(errors,[]);
   console.log('PASS success animation/audio, restart cleanup, reduced motion, home pause, unavailable storage/audio fallback; no script errors');
-  fs.writeFileSync(path.join(artifacts,'mobile-results.json'),JSON.stringify({browser:'Chromium '+(process.env.BROWSER_CHANNEL||'bundled'),touchInput:'CDP touch events',viewports:[[667,375],[844,390],[932,430],[390,844]],passed:true,googleApis:'mocked',physicalPhoneTest:false,audibleSoundReview:false},null,2));
+  fs.writeFileSync(path.join(artifacts,'mobile-results.json'),JSON.stringify({browser:'Chromium '+(process.env.BROWSER_CHANNEL||'bundled'),touchInput:'CDP touch events',viewports:[[667,375],[844,390],[932,430],[844,327],[667,280],[390,844]],passed:true,googleApis:'mocked',physicalPhoneTest:false,audibleSoundReview:false},null,2));
  }finally{await browser.close();await site.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

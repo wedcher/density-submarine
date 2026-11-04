@@ -17,12 +17,14 @@ function syncOrientation(){
  $('rotatePrompt').hidden=!paused;
 }
 portraitPhone.addEventListener('change',()=>{syncOrientation();resetKeyboardMotion();requestAnimationFrame(fit)});
-window.addEventListener('resize',resetKeyboardMotion);
-window.visualViewport?.addEventListener('resize',()=>{resetKeyboardMotion();requestAnimationFrame(fit)});
+// Browser chrome can change viewport height while a thumb is held. Only an
+// actual orientation change (above), blur or cancellation should clear input.
+window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(fit));
 let controlsSwapped=readPreference('swapped','false')==='true';
 function updatePreferences(){
  document.body.dataset.swapped=String(controlsSwapped);$('swapControls').setAttribute('aria-pressed',String(controlsSwapped));
- $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));$('soundToggle').textContent='聲音：'+(soundEnabled?'開':'關');
+ $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
+ const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.textContent=soundEnabled?'🔊':'🔇';
 }
 $('swapControls').onclick=()=>{resetKeyboardMotion();controlsSwapped=!controlsSwapped;savePreference('swapped',String(controlsSwapped));updatePreferences()};
 $('soundToggle').onclick=()=>{setSoundEnabled(!soundEnabled);updatePreferences()};
@@ -30,6 +32,14 @@ function showHome(){
  resetKeyboardMotion();clearFeedback();appView='home';updateClassroom();refreshCommunity();
 }
 $('backToLevels').onclick=showHome;$('rotateBack').onclick=showHome;
+let messageTimer=0;
+msg.setAttribute('role','status');
+new MutationObserver(()=>{
+ clearTimeout(messageTimer);msg.classList.remove('show-play-message');
+ if(appView==='play'&&!state?.won&&/鑰匙|開門|空間不足|無法|失敗/.test(msg.textContent)){
+  msg.classList.add('show-play-message');messageTimer=setTimeout(()=>msg.classList.remove('show-play-message'),2400);
+ }
+}).observe(msg,{childList:true,characterData:true,subtree:true});
 function invalidateQualification(){designRevision++;qualifiedFingerprint=null;qualifiedRevision=-1;runFingerprint=null;submissionPending=null;updateClassroom();}
 const originalPaint=paint;
 paint=function(...args){const before=fingerprint();originalPaint(...args);if(appView==='design'&&fingerprint()!==before)invalidateQualification();};
@@ -63,7 +73,7 @@ function loadInPlace(data,view){
 }
 function playLevel(data,title){
  const previous=currentGame,previousView=appView;
- try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent='正在遊玩：'+title;for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
+ try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent=title;$('playingTitle').title=title;for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
  catch(error){if(previous){loadInPlace(previous.data,'play');currentGame=previous;}appView=previousView;updateClassroom();msg.textContent='無法開始「'+title+'」：'+error.message;$('selectionStatus').textContent=msg.textContent;return false;}
 }
 $('designEntry').onclick=()=>{

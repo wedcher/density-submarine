@@ -9,10 +9,12 @@
  <p id="selectionStatus" role="status"></p>
 </section>
 <nav id="gameBar" aria-label="遊戲操作">
- <button id="backToLevels">← 選關</button><span id="playingTitle"></span>
- <button id="playRestart" aria-label="重新開始本關">↻ 重來</button>
- <button id="swapControls" aria-pressed="false" title="交換方向鍵與質量／體積按鈕的位置">⇄ 左右交換</button>
- <button id="soundToggle" aria-pressed="true">聲音：開</button>
+ <div id="levelHeading"><button id="backToLevels">← 選關</button><div class="level-caption">關卡：<strong id="playingTitle"></strong></div></div>
+ <div id="gameUtilities">
+  <button id="swapControls" aria-label="交換左右操作區" aria-pressed="false" title="交換左右操作區"><span aria-hidden="true">✋</span></button>
+  <button id="soundToggle" aria-label="聲音：開" aria-pressed="true" title="聲音：開"><span aria-hidden="true">🔊</span></button>
+  <button id="playRestart" aria-label="重新開始本關" title="重新開始本關"><span aria-hidden="true">↻</span></button>
+ </div>
 </nav>
 <aside id="rotatePrompt" hidden aria-labelledby="rotateTitle">
  <div class="rotate-card"><span class="rotate-icon" aria-hidden="true">↻ ▭</span><h2 id="rotateTitle">請將手機橫放</h2><p>中央看關卡，兩側操作小艇。</p><p>橫放後繼續遊玩；目前已暫停。</p><button id="rotateBack">← 返回選關</button></div>
