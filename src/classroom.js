@@ -74,7 +74,7 @@ function loadInPlace(data,view){
 }
 function playLevel(data,title){
  const previous=currentGame,previousView=appView;
- try{loadInPlace(data,'play');currentGame={data:clone(data),title};const nameChars=Array.from(data.name||title);$('playingTitle').textContent=nameChars.slice(0,6).join('')+(nameChars.length>6?'…':'');$('playingTitle').title=title;$('playingTitle').setAttribute('aria-label',title);for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
+ try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent=data.name||title;$('playingTitle').title=title;$('playingTitle').setAttribute('aria-label',title);for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
  catch(error){if(previous){loadInPlace(previous.data,'play');currentGame=previous;}appView=previousView;updateClassroom();msg.textContent='無法開始「'+title+'」：'+error.message;$('selectionStatus').textContent=msg.textContent;return false;}
 }
 $('designEntry').onclick=()=>{

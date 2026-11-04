@@ -19,7 +19,8 @@ body[data-view="home"] .level-list button{padding:16px;min-height:64px;font-size
 #levelHeading{grid-column:1/3;grid-row:1;align-self:center;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
 #backToLevels{width:34px;height:34px;flex-shrink:0;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #playingTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(16px,2.6vw,24px);line-height:1.3}
-#gameUtilities{grid-column:3;grid-row:1;display:flex;justify-content:center;gap:6px;align-items:center}
+#gameUtilities{grid-column:3;grid-row:1;display:flex;justify-content:space-between;gap:6px;align-items:center}
+#densityReadout{grid-column:1;grid-row:2;align-self:start;font-size:clamp(14px,1.8vw,18px);line-height:1.5;font-weight:bold;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
 #gameUtilities button{width:34px;height:34px;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #swapControls[aria-pressed="true"]{background:#ffe164}
 #soundToggle[aria-pressed="false"]{background:#e3e0db}
@@ -47,7 +48,7 @@ body[data-view="play"] #up{grid-column:2;grid-row:1}
 body[data-view="play"] #left{grid-column:1;grid-row:2}
 body[data-view="play"] #down{grid-column:2;grid-row:3}
 body[data-view="play"] #right{grid-column:3;grid-row:2}
-body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:4px}
+body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:calc(12px + var(--pad-key)*1.5 - var(--action-key)*.5)}
 body[data-view="play"] .group.right button{width:var(--action-key);height:var(--action-key);font-size:clamp(20px,3vw,30px);padding:0;background:#fff5cf;white-space:nowrap;display:flex;align-items:center;justify-content:center}
 body[data-view="play"] #mMinus{grid-column:1;grid-row:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
 body[data-view="play"] #vPlus{grid-column:1;grid-row:2}

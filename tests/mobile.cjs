@@ -38,6 +38,12 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
    const [left,rightButton,upButton,downButton,vp,vm,drop]=layout.buttons;
    assert(upButton.y<left.y&&downButton.y>left.y&&Math.abs(left.y-rightButton.y)<1);
    assert(Math.abs(vp.y-vm.y)<1&&vm.x>vp.x&&drop.y<vp.y);
+   assert(Math.abs(vp.y+vp.height/2-left.y-left.height/2)<1,'V and direction centers align');
+   const header=await page.evaluate(()=>{const value=$('hudStatus').firstElementChild.getBoundingClientRect(),key=document.querySelector('#hudStatus .key-count').getBoundingClientRect(),density=$('densityReadout').getBoundingClientRect();return {gap:key.left-value.right,font:parseFloat(getComputedStyle($('hudStatus')).fontSize),densityBottom:density.bottom}});
+   assert(header.gap>=header.font-.5,'key count has a full space');
+   assert(header.densityBottom<upButton.y);
+   const [,restart,swap,sound]=layout.utilities;
+   assert(Math.abs((swap.x-restart.x)-(sound.x-swap.x))<1);
    const labelSizes=await page.evaluate(()=>{const scale=stage.getBoundingClientRect().width/1000;return {title:parseFloat(getComputedStyle($('playingTitle')).fontSize),layers:[...document.querySelectorAll('.layer .tag')].map(el=>parseFloat(getComputedStyle(el).fontSize)*scale)}});
    assert(labelSizes.layers.every(size=>Math.abs(size-labelSizes.title)<.1));
   }
@@ -51,8 +57,15 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   await page.locator('#soundToggle').tap();
   console.log('PASS drawn key icons, M item label, same-size liquid labels at every scale, matching speaker on/off design');
   await page.evaluate(()=>playLevel({...EXAMPLE_LEVELS[0],name:'一二三四五六七八九'},'一二三四五六七八九'));
-  assert.equal(await page.locator('#playingTitle').textContent(),'一二三四五六…');assert.equal(await page.locator('#playingTitle').getAttribute('title'),'一二三四五六七八九');
-  console.log('PASS header icons on one row, HUD right-aligned with map and yields 20% to left title, six-character title, cross pad and V buttons side by side');
+  assert.equal(await page.locator('#playingTitle').textContent(),'一二三四五六七八九');assert.equal(await page.locator('#playingTitle').getAttribute('title'),'一二三四五六七八九');
+  await page.evaluate(()=>playLevel({...EXAMPLE_LEVELS[0],name:'一二三四五六七八九十很長的關卡名稱測試'},'長名稱'));
+  await page.waitForTimeout(100);
+  assert(await page.locator('#playingTitle').evaluate(el=>getComputedStyle(el).textOverflow==='ellipsis'&&el.scrollWidth>el.clientWidth));
+  await prepare();
+  const readings=await page.evaluate(()=>[100,200,340,460,160,280,400,159.99,160.01].map(y=>{state.y=y;state.m=1;state.v=4;render();return [$('boatDensityReadout').textContent,$('waterDensityReadout').textContent]}));
+  assert.deepEqual(readings.map(r=>r[1]),['D💧=0.25','D💧=0.5','D💧=1.0','D💧=2.0','D💧=交界','D💧=交界','D💧=交界','D💧=0.25','D💧=0.5']);
+  assert(readings.every(r=>r[0]==='D🚤=0.25'));
+  console.log('PASS responsive title ellipsis, spaced header icons/key count, aligned V/direction centers, boat/liquid densities and exact interface label');
   await page.setViewportSize({width:844,height:390});await prepare();
   const start=await x(),right=await center('right');await touch('touchStart',[right]);await page.waitForTimeout(480);const held=await x();assert(held-start>55);
   await touch('touchEnd');const released=await x();await page.waitForTimeout(240);assert.equal(await x(),released);
@@ -86,6 +99,8 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   await prepare();await touch('touchStart',[right]);await page.waitForTimeout(200);await page.setViewportSize({width:390,height:844});await page.waitForFunction(()=>playPaused);await touch('touchEnd');
   const rotated=await x();await page.waitForTimeout(200);assert.equal(await x(),rotated);await page.setViewportSize({width:844,height:390});await page.waitForFunction(()=>!playPaused);await page.waitForTimeout(200);assert.equal(await x(),rotated);
   await page.locator('#swapControls').tap();assert.equal(await page.locator('#swapControls').getAttribute('aria-pressed'),'true');assert((await center('right')).x>(await center('vPlus')).x);
+  assert(Math.abs((await center('right')).y-(await center('vPlus')).y)<1);
+  assert(await page.evaluate(()=>$('densityReadout').getBoundingClientRect().bottom<$('mMinus').getBoundingClientRect().top));
   await page.locator('#soundToggle').tap();assert.equal(await page.locator('#soundToggle').getAttribute('aria-pressed'),'false');
   await page.reload();await page.locator('#officialLevels button').first().tap();assert.equal(await page.locator('#swapControls').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#soundToggle').getAttribute('aria-pressed'),'false');
   await page.screenshot({path:path.join(artifacts,'mobile-swapped.png')});

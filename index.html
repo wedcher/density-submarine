@@ -60,6 +60,7 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 .controls button{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .key-icon{display:inline-block;width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 #hudStatus,.key-count{display:flex;align-items:center;justify-content:center;gap:.4em}
+#hudStatus{column-gap:1em}
 .key-count .key-icon{width:1.25em;height:1.25em}
 .layer .tag{font-size:var(--layer-label-size,16px);line-height:1.1;white-space:nowrap}
 .controls button.held{background:#ffe164;box-shadow:inset 0 0 0 2px #8c6d00;transform:translateY(2px)}
@@ -92,7 +93,8 @@ body[data-view="home"] .level-list button{padding:16px;min-height:64px;font-size
 #levelHeading{grid-column:1/3;grid-row:1;align-self:center;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
 #backToLevels{width:34px;height:34px;flex-shrink:0;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #playingTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(16px,2.6vw,24px);line-height:1.3}
-#gameUtilities{grid-column:3;grid-row:1;display:flex;justify-content:center;gap:6px;align-items:center}
+#gameUtilities{grid-column:3;grid-row:1;display:flex;justify-content:space-between;gap:6px;align-items:center}
+#densityReadout{grid-column:1;grid-row:2;align-self:start;font-size:clamp(14px,1.8vw,18px);line-height:1.5;font-weight:bold;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
 #gameUtilities button{width:34px;height:34px;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #swapControls[aria-pressed="true"]{background:#ffe164}
 #soundToggle[aria-pressed="false"]{background:#e3e0db}
@@ -120,7 +122,7 @@ body[data-view="play"] #up{grid-column:2;grid-row:1}
 body[data-view="play"] #left{grid-column:1;grid-row:2}
 body[data-view="play"] #down{grid-column:2;grid-row:3}
 body[data-view="play"] #right{grid-column:3;grid-row:2}
-body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:4px}
+body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:calc(12px + var(--pad-key)*1.5 - var(--action-key)*.5)}
 body[data-view="play"] .group.right button{width:var(--action-key);height:var(--action-key);font-size:clamp(20px,3vw,30px);padding:0;background:#fff5cf;white-space:nowrap;display:flex;align-items:center;justify-content:center}
 body[data-view="play"] #mMinus{grid-column:1;grid-row:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
 body[data-view="play"] #vPlus{grid-column:1;grid-row:2}
@@ -160,6 +162,7 @@ body[data-view="play"] .note{display:none}
 </section>
 <nav id="gameBar" aria-label="遊戲操作">
  <div id="levelHeading"><button id="backToLevels" aria-label="返回選關" title="返回選關"><span aria-hidden="true">←</span></button><strong id="playingTitle"></strong></div>
+ <div id="densityReadout"><div id="boatDensityReadout">D🚤=—</div><div id="waterDensityReadout">D💧=—</div></div>
  <div id="gameUtilities">
   <button id="playRestart" aria-label="重新開始本關" title="重新開始本關"><span aria-hidden="true">↻</span></button>
   <button id="swapControls" aria-label="交換左右操作區" aria-pressed="false" title="交換左右操作區"><span aria-hidden="true">⇄</span></button>
@@ -257,9 +260,19 @@ function openDoorsAt(x,y){
 function overlap(x,y,w,ix,iy,iw){return Math.abs(x-ix)<(w+iw)/2&&Math.abs(y-iy)<40}
 function rect(parent,cls,x,y,w,h,text=''){const e=document.createElement('div');e.className=cls;e.textContent=text;Object.assign(e.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});parent.appendChild(e);return e}
 function keyIcon(){return '<svg class="key-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 27 27m-7-7 4-4m0 8 4-4"/></svg>'}
+function waterDensityAt(y){
+ if(layerDefs.slice(1).some(layer=>Math.abs(y-layer.top)<1e-7))return '交界';
+ const layer=layerDefs.find(layer=>y>=layer.top&&y<=layer.bottom);return layer?fmt(layer.d):'—';
+}
+function updateDensityReadout(){
+ const boatLine=$('boatDensityReadout'),waterLine=$('waterDensityReadout');if(!boatLine||!waterLine)return;
+ const boatDensity=state?fmt(D()):'—',waterDensity=state?waterDensityAt(state.y):'—';
+ boatLine.textContent='D🚤='+boatDensity;boatLine.setAttribute('aria-label','小艇密度：'+boatDensity);
+ waterLine.textContent='D💧='+waterDensity;waterLine.setAttribute('aria-label','所在位置液體密度：'+waterDensity);
+}
 function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=>rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=>!i.taken).forEach(i=>{const element=rect($('itemLayer'),'item '+i.type+(i.type==='door'&&i.open?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M':i.type==='key'?'':i.open?'開':'門');if(i.type==='key'){element.innerHTML=keyIcon();element.setAttribute('role','img');element.setAttribute('aria-label','鑰匙')}});goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
 function build(){resetKeyboardMotion();clearFeedback();boat.classList.remove('celebrate');if($('completionBadge'))$('completionBadge').hidden=true;rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=>row.forEach((type,c)=>{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:0,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=>rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
-function render(){boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').innerHTML=`<span>M=${state.m}　V=${state.v}　D=${fmt(d)}</span> <span class=key-count aria-label="鑰匙：${state.key}把">${keyIcon()}<span>${state.key}</span></span>`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
+function render(){updateDensityReadout();boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').innerHTML=`<span>M=${state.m}　V=${state.v}　D=${fmt(d)}</span> <span class=key-count aria-label="鑰匙：${state.key}把">${keyIcon()}<span>${state.key}</span></span>`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
 // All M/V changes are transactional; resolve collisions in connected nearby water.
 // Reposition only inside the new density region, or horizontally while in transit.
 function changeStats(m,v){
@@ -673,7 +686,7 @@ function loadInPlace(data,view){
 }
 function playLevel(data,title){
  const previous=currentGame,previousView=appView;
- try{loadInPlace(data,'play');currentGame={data:clone(data),title};const nameChars=Array.from(data.name||title);$('playingTitle').textContent=nameChars.slice(0,6).join('')+(nameChars.length>6?'…':'');$('playingTitle').title=title;$('playingTitle').setAttribute('aria-label',title);for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
+ try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent=data.name||title;$('playingTitle').title=title;$('playingTitle').setAttribute('aria-label',title);for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
  catch(error){if(previous){loadInPlace(previous.data,'play');currentGame=previous;}appView=previousView;updateClassroom();msg.textContent='無法開始「'+title+'」：'+error.message;$('selectionStatus').textContent=msg.textContent;return false;}
 }
 $('designEntry').onclick=()=>{
