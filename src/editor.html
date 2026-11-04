@@ -168,7 +168,7 @@ function changeStats(m,v){
 }
 let playPaused=false;
 function active(){return mode==='play'&&state&&!state.won&&!playPaused&&document.body.dataset.view!=='home'}
-function step(dx,dy){const steps=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)));for(let i=0;i<steps;i++){const x=state.x+dx/steps,y=state.y+dy/steps;openDoorsAt(x,y);if(blocked(x,y))break;state.x=x;state.y=y;const before=D();collect();if(state.won||D()!==before)break}}
+function step(dx,dy){const steps=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))),startX=state.x,startY=state.y;for(let i=0;i<steps;i++){const x=startX+dx*(i+1)/steps,y=startY+dy*(i+1)/steps;openDoorsAt(x,y);if(blocked(x,y))break;state.x=x;state.y=y;const before=D();collect();if(state.won||D()!==before)break}}
 function finish(){if(!state.won&&goalPos&&overlap(state.x,state.y,size(state.v).w,goalPos.x,goalPos.y,40)){state.won=true;resetKeyboardMotion();boat.classList.add('celebrate');if(!$('completionBadge')){const badge=document.createElement('div');badge.id='completionBadge';badge.setAttribute('role','status');stage.appendChild(badge)}$('completionBadge').textContent='★ 挑戰成功！ ★';$('completionBadge').hidden=false;celebrateWin();msg.textContent='過關！可回編輯繼續修改地圖。'}}
 function collect(){for(const it of items){if(it.taken||it.type==='door'||!overlap(state.x,state.y,size(state.v).w,it.x,it.y,40))continue;if(it.type==='key'){it.taken=true;state.key++;msg.textContent='已取得鑰匙，目前持有 '+state.key+' 把；碰到門才會開啟。'}else if(state.m<3&&changeStats(state.m+1,state.v)){it.taken=true}drawWorld()}finish()}
 // A one-cell opening must remain reachable with 24/16 px button increments.
@@ -178,17 +178,28 @@ function clearPath(x,y,dx,dy){
  for(let i=1;i<=n;i++)if(blocked(x+dx*i/n,y+dy*i/n))return false;
  return true;
 }
-function moveThroughOpening(dx,dy){
+// Exact edge coordinates matter: integer nudges retain fractional x and can
+// never enter a gap exactly as wide as the hull. Only consider nearby edges.
+function verticalAlignmentOffsets(){
+ const half=size(state.v).w/2,targets=[half,WIDTH-half];
+ for(const r of rocks)targets.push(r.x-half,r.x+r.w+half);
+ for(const door of items)if(door.type==='door'&&!door.open)targets.push(door.x-20-half,door.x+20+half);
+ return [...new Set(targets)].map(x=>x-state.x).filter(dx=>Math.abs(dx)>1e-9&&Math.abs(dx)<=12).sort((a,b)=>Math.abs(a)-Math.abs(b)||a-b);
+}
+function moveThroughOpening(dx,dy,buoyant=false){
  const start={x:state.x,y:state.y,d:D()},horizontal=dx!==0;
  step(dx,dy);
  if(state.won||D()!==start.d)return;
  const remaining=horizontal?start.x+dx-state.x:start.y+dy-state.y;
  if(Math.abs(remaining)<1e-8)return;
- const [lo,hi]=bounds(D()),limit=horizontal?8:12;
- for(let offset=1;offset<=limit;offset++)for(const sign of [-1,1]){
-  const ax=horizontal?0:offset*sign,ay=horizontal?offset*sign:0;
+ const [lo,hi]=bounds(D());
+ const offsets=horizontal?Array.from({length:8},(_,i)=>[-i-1,i+1]).flat():verticalAlignmentOffsets();
+ for(const offset of offsets){
+  const ax=horizontal?0:offset,ay=horizontal?offset:0;
   const x=state.x+ax,y=state.y+ay,rx=horizontal?remaining:0,ry=horizontal?0:remaining;
-  if(y<lo||y>hi||!clearPath(state.x,state.y,ax,ay)||!clearPath(x,y,rx,ry))continue;
+  // Buoyancy already points toward the density region. Its alignment is only
+  // horizontal; manual movement keeps the original density-region restriction.
+  if(((!buoyant||horizontal)&&(y<lo||y>hi))||!clearPath(state.x,state.y,ax,ay)||!clearPath(x,y,rx,ry))continue;
   step(ax,ay);
   if(!state.won&&D()===start.d)step(rx,ry);
   return;
@@ -196,7 +207,7 @@ function moveThroughOpening(dx,dy){
 }
 function moveX(dx){if(!active())return;moveThroughOpening(dx,0);collect();render()}
 function moveY(dir){if(!active())return;const [lo,hi]=bounds(D());if(lo===hi||state.y<lo||state.y>hi)return;moveThroughOpening(0,Math.max(lo,Math.min(hi,state.y+dir*16))-state.y);collect();render()}
-function buoy(){if(!active())return;const [lo,hi]=bounds(D()),target=Math.max(lo,Math.min(hi,state.y));step(0,Math.sign(target-state.y)*Math.min(6,Math.abs(target-state.y)));collect();render()}
+function buoy(){if(!active())return;const [lo,hi]=bounds(D()),target=Math.max(lo,Math.min(hi,state.y));moveThroughOpening(0,Math.sign(target-state.y)*Math.min(6,Math.abs(target-state.y)),true);collect();render()}
 function changeV(up){if(!active())return;const vals=[1,2,4],v=vals[vals.indexOf(state.v)+(up?1:-1)];if(v)changeStats(state.m,v)}
 function dropM(){
  if(!active()||state.m<=1)return;
