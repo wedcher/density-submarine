@@ -2,7 +2,15 @@
 
 遊戲網址：https://wedcher.github.io/density-submarine/
 
-用 D＝M／V 探索密度的課堂遊戲。開啟後直接遊玩官方範本或同學投稿；按「設計／投稿關卡」在同一頁編輯、試玩、保存。成功通關自己的設計後才能投稿，修改後要重新通關。詳細規格見 [SPEC.md](SPEC.md)，進度與來源見 [PROJECT.md](PROJECT.md)。
+用 D＝M／V 探索密度的課堂遊戲。開啟後選擇官方範本或同學投稿，在同一分頁切換至遊戲畫面；按「設計／投稿關卡」編輯、試玩、保存。成功通關自己的設計後才能投稿，修改後要重新通關。詳細規格見 [SPEC.md](SPEC.md)，進度與來源見 [PROJECT.md](PROJECT.md)。
+
+## 手機操作測試版（2026-11-04，尚未正式發布）
+
+本分支 `test/mobile-landscape-controls` 將選關與遊戲畫面分開。手機進入關卡後請橫放：中央顯示完整地圖，兩側為方向鍵與 V＋／V－／丟 M；直拿時提示橫放並暫停。方向鍵可按住連續移動，放開即停止方向操作，密度浮沉仍保留。右上可交換左右操作區、關閉音效；偏好記在目前瀏覽器。電腦鍵盤與既有遊戲規則沿用。
+
+本機預覽：執行 `node scripts/preview.cjs`，開啟終端顯示的 localhost 網址；僅供這台電腦使用，不會發布網站。也可直接開啟 `index.html` 遊玩／編輯，file:// 下不提供同學關卡或投稿。
+
+成功通關有動畫及短音效，成功丟質量時有黑點掉落及短音效。瀏覽器不支援音效時仍可遊玩；不宣稱已完成實體手機或音效聽感驗收。下方正式網址仍是既有版本。
 
 ## 同學投稿
 
@@ -27,14 +35,23 @@ git clone https://github.com/wedcher/density-submarine.git
 cd density-submarine
 ```
 
-每次修改前先 git pull --ff-only；正式遊戲核心在 src/editor.html，同頁功能在 src/classroom.js，後端在 src/server.gs。修改後：
+依使用者 2026-11-04 最新授權：先確認需求，收到「開始做」後才在獨立測試分支實作。**未經明確同意，不得修改 main、合併測試分支或發布正式網站。** 舊文件中的自主發布授權不再適用。
+
+首次開發先建立測試分支（名稱依需求調整）：
+
+```sh
+git fetch origin
+git switch --no-track -c test/mobile-landscape-controls origin/main
+```
+
+正式遊戲核心在 src/editor.html，同頁功能在 src/classroom.js，後端在 src/server.gs。確認目前位於測試分支後：
 
 ```sh
 npm run build
 npm test
 git add .
 git commit -m "更新密度小艇"
-git push
+git push -u origin HEAD:refs/heads/test/mobile-landscape-controls
 ```
 
 GitHub Pages 發布 main 根目錄的 index.html。原生 index.html 也可以本機開啟設計、試玩與保存；投稿與同學清單需從 HTTP(S) 遊戲網址使用。Google 後端修改仍需另行部署。

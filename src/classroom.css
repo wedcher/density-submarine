@@ -1,6 +1,8 @@
-body[data-view="play"] #materialRow,body[data-view="play"] #levelRow,body[data-view="play"] #designPanel{display:none}
-body[data-view="design"] #homePanel,body[data-view="design"] #designEntry{display:none}
-body[data-view="play"] #backToPlay{display:none}
+body:not([data-view="design"]) #materialRow,body:not([data-view="design"]) #levelRow,body:not([data-view="design"]) #designPanel{display:none}
+body:not([data-view="home"]) #homePanel,body:not([data-view="home"]) #designEntry{display:none}
+body:not([data-view="design"]) #backToPlay{display:none}
+body[data-view="home"] #gameSurface,body:not([data-view="play"]) #gameBar{display:none}
+body[data-view="play"] .header,body[data-view="play"] .classroom-nav{display:none}
 .classroom-nav{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
 .classroom-panel{padding:12px 14px;margin:10px 0;background:#fffdfa;border:2px solid #d7d0c5;border-radius:12px;line-height:1.7}
 .classroom-panel h2{font-size:18px;margin:0 0 8px}.level-list{display:flex;gap:7px;flex-wrap:wrap}.level-list button{text-align:left;max-width:100%;overflow-wrap:anywhere}
@@ -10,3 +12,53 @@ body[data-view="play"] #backToPlay{display:none}
 #backendBridge{display:none}#submitBtn{background:#ffdf83}#qualificationStatus{font-weight:bold}
 
 #officialLevels button.selected{background:#ffe164;color:#302600;border-color:#8c6d00;box-shadow:inset 0 0 0 2px #8c6d00;font-weight:bold}
+
+body[data-view="home"] .level-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+body[data-view="home"] .level-list button{padding:16px;min-height:64px;font-size:16px}
+#gameBar{display:flex;align-items:center;gap:6px;min-height:44px;margin-bottom:6px}
+#gameBar button{min-height:40px;white-space:nowrap;padding:6px 10px}
+#playingTitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:bold}
+#swapControls[aria-pressed="true"]{background:#ffe164}
+#soundToggle[aria-pressed="false"]{background:#e3e0db}
+body[data-view="play"]{overflow:hidden;overscroll-behavior:none}
+body[data-view="play"] .wrap{width:1400px;max-width:none;height:100vh;height:100dvh;margin:0 auto;padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));width:100%;display:flex;flex-direction:column}
+body[data-view="play"] #gameSurface{flex:1;min-height:0;display:grid;grid-template-columns:148px minmax(0,1fr) 148px;grid-template-rows:auto minmax(0,1fr) auto auto;gap:6px 12px}
+body[data-view="play"] .hud{grid-column:2;grid-row:1;margin:0;padding:3px 8px;min-height:28px;font-size:13px;justify-content:center}
+body[data-view="play"] .hud>div:first-child{display:none}
+body[data-view="play"] .stageSlot{grid-column:2;grid-row:2;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+body[data-view="play"] .stageWrap{flex-shrink:0;max-width:100%;margin:0}
+body[data-view="play"] .controls{display:contents}
+body[data-view="play"] .direction-pad{grid-column:1;grid-row:2;align-self:center;justify-self:center;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,48px);gap:3px;user-select:none}
+body[data-view="play"] .direction-pad button{min-width:0;padding:0;font-size:26px;border-radius:12px}
+body[data-view="play"] #up{grid-column:2;grid-row:1}
+body[data-view="play"] #left{grid-column:1;grid-row:2}
+body[data-view="play"] #down{grid-column:2;grid-row:2}
+body[data-view="play"] #right{grid-column:3;grid-row:2}
+body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:center;justify-self:center;display:grid;gap:8px;width:80px}
+body[data-view="play"] .group.right button{font-size:20px;min-height:48px;padding:6px;background:#fff5cf}
+body[data-view="play"] #mMinus{background:#e0edf1}
+body[data-view="play"][data-swapped="true"] .direction-pad{grid-column:3}
+body[data-view="play"][data-swapped="true"] .group.right{grid-column:1}
+body[data-view="play"] .readout{grid-column:2;grid-row:3;min-width:0;order:0}
+body[data-view="play"] .readout b{display:none}
+body[data-view="play"] .readout .sub{font-size:12px;margin:0;opacity:1}
+body[data-view="play"] .msg{grid-column:1/-1;grid-row:4;font-size:13px;min-height:18px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-view="play"] .note{display:none}
+#rotatePrompt{position:fixed;inset:0;z-index:100;background:#f3f0e8f5;display:grid;place-items:center;padding:24px;text-align:center}
+#rotatePrompt[hidden]{display:none}
+.rotate-card{max-width:360px}.rotate-card p{line-height:1.7}.rotate-icon{display:block;font-size:64px;color:#437f81}.rotate-card button{min-height:48px}
+@media(max-height:420px) and (orientation:landscape){
+ #gameBar{min-height:38px;margin-bottom:3px}#gameBar button{min-height:36px;padding:4px 8px;font-size:12px}
+ body[data-view="play"] #gameSurface{gap:4px 8px}
+ body[data-view="play"] .hud{min-height:24px;font-size:12px;padding:2px 4px}
+ body[data-view="play"] .msg{font-size:12px}
+}
+@media(max-width:700px) and (orientation:landscape){
+ body[data-view="play"] #gameSurface{grid-template-columns:138px minmax(0,1fr) 138px;column-gap:6px}
+ body[data-view="play"] .direction-pad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,46px)}
+ #playingTitle{font-size:12px}
+}
+@media(orientation:portrait){
+ body[data-view="play"] #gameSurface{grid-template-columns:148px minmax(0,1fr) 148px}
+ #gameBar{flex-wrap:wrap}#playingTitle{flex-basis:calc(100% - 90px)}
+}

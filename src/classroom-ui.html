@@ -1,12 +1,22 @@
 <nav class="classroom-nav" aria-label="遊玩與設計">
- <button id="designEntry"><span class="tool-icon" aria-hidden="true">✏️</span>設計／投稿關卡</button><button id="backToPlay"><span class="tool-icon" aria-hidden="true">↩</span>返回正常遊戲</button>
+ <button id="designEntry"><span class="tool-icon" aria-hidden="true">✏️</span>設計／投稿關卡</button><button id="backToPlay"><span class="tool-icon" aria-hidden="true">↩</span>返回選關</button>
 </nav>
 <section id="homePanel" class="classroom-panel">
+ <p class="classroom-hint">選一關開始探索！手機進入關卡後請橫放，按住方向鍵就能持續移動。</p>
  <h2>官方示範關卡</h2><div id="officialLevels" class="level-list"></div>
  <h2 style="margin-top:14px">同學投稿關卡</h2>
  <button id="communityRefresh">重新整理清單</button><p id="communityStatus" class="classroom-hint" role="status"></p><div id="communityLevels" class="level-list"></div>
- <p id="playingTitle" class="classroom-hint"></p><button id="playRestart">重新開始本關</button>
+ <p id="selectionStatus" role="status"></p>
 </section>
+<nav id="gameBar" aria-label="遊戲操作">
+ <button id="backToLevels">← 選關</button><span id="playingTitle"></span>
+ <button id="playRestart" aria-label="重新開始本關">↻ 重來</button>
+ <button id="swapControls" aria-pressed="false" title="交換方向鍵與質量／體積按鈕的位置">⇄ 左右交換</button>
+ <button id="soundToggle" aria-pressed="true">聲音：開</button>
+</nav>
+<aside id="rotatePrompt" hidden aria-labelledby="rotateTitle">
+ <div class="rotate-card"><span class="rotate-icon" aria-hidden="true">↻ ▭</span><h2 id="rotateTitle">請將手機橫放</h2><p>中央看關卡，兩側操作小艇。</p><p>橫放後繼續遊玩；目前已暫停。</p><button id="rotateBack">← 返回選關</button></div>
+</aside>
 <section id="designPanel" class="classroom-panel">
  <span id="qualificationStatus" role="status">請先試玩並通關，再投稿。</span> <button id="submitBtn" disabled><span class="tool-icon" aria-hidden="true">📮</span>投稿關卡</button>
  <p class="classroom-hint">設計、試玩與投稿都在這個頁面。正式關卡修改後需重新通關；離開網頁前請匯出 JSON 保存。</p>

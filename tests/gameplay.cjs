@@ -4,7 +4,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE_DIR||'playwright');
 (async()=>{const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});try{
 const page=await browser.newPage({viewport:{width:1280,height:950}});await page.addInitScript(()=>window.setInterval=()=>0);
 await page.goto(pathToFileURL(path.join(__dirname,'..','index.html')).href);
-assert.equal(await page.locator('#officialLevels button.selected').count(),1);await page.locator('#officialLevels button').nth(2).click();assert.equal(await page.locator('#officialLevels button.selected').textContent(),await page.locator('#officialLevels button').nth(2).textContent());
+assert.equal(await page.locator('#officialLevels button.selected').count(),0);await page.locator('#officialLevels button').nth(2).click();assert.equal(await page.locator('#officialLevels button.selected').textContent(),await page.locator('#officialLevels button').nth(2).textContent());
 await page.evaluate(()=>{
  mode='play';rocks=[];goalPos=null;state={x:100,y:340,m:1,v:1,key:0,won:false};
  items=[{type:'key',x:100,y:340},{type:'key',x:100,y:340},{type:'door',x:140,y:340},{type:'door',x:140,y:380},{type:'door',x:180,y:420},{type:'door',x:260,y:340}];collect();

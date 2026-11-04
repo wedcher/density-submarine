@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>密度小艇｜地圖編輯器 v2</title>
 <style>
 :root{--ink:#243139;--paper:#f3f0e8;--rock1:#716557;--rock2:#4f473e;--l025:#e1f6ef;--l050:#d7ecf6;--l100:#e6def4;--l200:#f1d5dc}
@@ -57,7 +57,16 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 #completionBadge[hidden]{display:none}.celebrate .hull{animation:winGlow .6s ease-in-out 3}
 @keyframes winBadge{from{opacity:0;transform:translateX(-50%) scale(.6)}to{opacity:1;transform:translateX(-50%) scale(1)}}
 @keyframes winGlow{50%{filter:brightness(1.5);box-shadow:0 0 22px 8px #ffd44b}}
-@media(prefers-reduced-motion:reduce){#completionBadge,.celebrate .hull{animation:none}}
+.controls button{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.controls button.held{background:#ffe164;box-shadow:inset 0 0 0 2px #8c6d00;transform:translateY(2px)}
+.massDrop{border:2px solid white;box-shadow:0 0 0 2px #243139;animation:massFall .85s ease-in forwards}
+@keyframes massFall{0%{transform:translateY(0);opacity:1}70%{opacity:1}100%{transform:translateY(100px) scale(.7);opacity:0}}
+#completionBadge{top:50%;font-size:40px;padding:24px 36px;text-align:center;white-space:nowrap;transform:translate(-50%,-50%);box-shadow:0 6px 0 #8c6200,0 0 0 1000px #24313928;animation:successPop .65s cubic-bezier(.2,.8,.2,1.3)}
+#completionBadge small{display:block;font-size:20px;margin-top:8px}
+@keyframes successPop{from{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-8deg)}to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.confetti{position:absolute;z-index:51;top:0;width:12px;height:22px;pointer-events:none;animation:confettiFall 1.8s ease-out both}
+@keyframes confettiFall{from{transform:translateY(-30px) rotate(0);opacity:1}to{transform:translateY(560px) rotate(540deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){#completionBadge,.celebrate .hull{animation:none}.confetti{display:none}.massDrop{animation:none}}
 </style>
 </head>
 <body>
@@ -72,8 +81,9 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 <div class="editor-actions" role="group" aria-label="試玩操作"><button id="modeBtn">▶ 試玩</button><button id="restartBtn" hidden>↻ 重新試玩</button></div>
 <div class="editor-actions" role="group" aria-label="關卡檔案"><button id="exportBtn"><span class="tool-icon" aria-hidden="true">📤</span>匯出關卡</button><button id="importBtn"><span class="tool-icon" aria-hidden="true">📂</span>匯入關卡</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="clearBtn"><span class="tool-icon" aria-hidden="true">🗑️</span>清空地圖</button></div><span id="modeLabel">編輯模式｜每格 40 × 40</span>
 </div>
+<div id="gameSurface">
 <div class="hud"><div>質量 M：<span class="massDots" id="massDots"></span></div><div id="hudStatus"></div></div>
-<div class="stageWrap"><div id="stage">
+<div class="stageSlot"><div class="stageWrap"><div id="stage">
 <div class="layer" id="L025"><div class="dots"></div><div class="tag">D = 0.25</div></div>
 <div class="layer" id="L050"><div class="dots"></div><div class="tag">D = 0.5</div></div>
 <div class="layer" id="L100"><div class="dots"></div><div class="tag">D = 1</div></div>
@@ -82,14 +92,15 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 <div id="rockLayer"></div><div id="itemLayer"></div>
 <div id="goal"><div class="flagpole"></div><div class="flag"></div><div class="goalbase"></div></div>
 <div id="boat"><div class="formulaCard"><span class="lhs" id="fD"></span><span class="eq">=</span><span class="frac"><span class="num" id="fM"></span><span class="bar"></span><span class="den" id="fV"></span></span></div><div class="periscope"></div><div class="propeller"></div><div class="hull"><div class="hullDots"></div></div></div>
-</div></div>
+</div></div></div>
 <div class="controls">
-<div class="group"><button class="move" id="left">←</button><button class="move" id="up">↑</button><button class="move" id="down">↓</button><button class="move" id="right">→</button></div>
+<div class="group direction-pad" role="group" aria-label="按住方向鍵移動，放開停止"><button class="move" id="left" aria-label="向左">←</button><button class="move" id="up" aria-label="向上">↑</button><button class="move" id="down" aria-label="向下">↓</button><button class="move" id="right" aria-label="向右">→</button></div>
 <div class="readout"><b id="densityText"></b><div class="sub" id="stateText"></div></div>
 <div class="group right"><button id="vPlus">V＋</button><button id="vMinus">V－</button><button id="mMinus">丟 M</button></div>
 </div>
 <div class="msg" id="msg"></div><div class="answer" id="answer"></div>
 <div class="note">← → 移動；↑ ↓ 在相同密度層內移動；Num ＋／－ 改 V；Num ＊ 丟 M。通道依當下船身尺寸判定；投稿前須自行通關。新關卡初始 M=1、V=1，匯入時沿用檔案設定。半格岩石為 1 格寬 × 0.5 格高，依點擊位置對齊上／下半格；小艇仍需 1 格高的通道。</div>
+</div>
 </div>
 <script>
 const densityStyles={
@@ -131,7 +142,7 @@ function openDoorsAt(x,y){
 function overlap(x,y,w,ix,iy,iw){return Math.abs(x-ix)<(w+iw)/2&&Math.abs(y-iy)<40}
 function rect(parent,cls,x,y,w,h,text=''){const e=document.createElement('div');e.className=cls;e.textContent=text;Object.assign(e.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});parent.appendChild(e);return e}
 function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=>rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=>!i.taken).forEach(i=>rect($('itemLayer'),'item '+i.type+(i.type==='door'&&i.open?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M+':i.type==='key'?'鑰匙':i.open?'開':'門'));goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
-function build(){resetKeyboardMotion();boat.classList.remove('celebrate');if($('completionBadge'))$('completionBadge').hidden=true;rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=>row.forEach((type,c)=>{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:0,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=>rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
+function build(){resetKeyboardMotion();clearFeedback();boat.classList.remove('celebrate');if($('completionBadge'))$('completionBadge').hidden=true;rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=>row.forEach((type,c)=>{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:0,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=>rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
 function render(){boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').textContent=`M=${state.m}　V=${state.v}　D=${fmt(d)}　鑰匙：${state.key} 把`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
 // All M/V changes are transactional; resolve collisions in connected nearby water.
 // Reposition only inside the new density region, or horizontally while in transit.
@@ -155,9 +166,10 @@ function changeStats(m,v){
  }
  Object.assign(next,position);state=next;render();return true;
 }
-function active(){return mode==='play'&&state&&!state.won}
+let playPaused=false;
+function active(){return mode==='play'&&state&&!state.won&&!playPaused&&document.body.dataset.view!=='home'}
 function step(dx,dy){const steps=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)));for(let i=0;i<steps;i++){const x=state.x+dx/steps,y=state.y+dy/steps;openDoorsAt(x,y);if(blocked(x,y))break;state.x=x;state.y=y;const before=D();collect();if(state.won||D()!==before)break}}
-function finish(){if(!state.won&&goalPos&&overlap(state.x,state.y,size(state.v).w,goalPos.x,goalPos.y,40)){state.won=true;resetKeyboardMotion();boat.classList.add('celebrate');if(!$('completionBadge')){const badge=document.createElement('div');badge.id='completionBadge';badge.setAttribute('role','status');stage.appendChild(badge)}$('completionBadge').textContent='★ 挑戰成功！ ★';$('completionBadge').hidden=false;msg.textContent='過關！可回編輯繼續修改地圖。'}}
+function finish(){if(!state.won&&goalPos&&overlap(state.x,state.y,size(state.v).w,goalPos.x,goalPos.y,40)){state.won=true;resetKeyboardMotion();boat.classList.add('celebrate');if(!$('completionBadge')){const badge=document.createElement('div');badge.id='completionBadge';badge.setAttribute('role','status');stage.appendChild(badge)}$('completionBadge').textContent='★ 挑戰成功！ ★';$('completionBadge').hidden=false;celebrateWin();msg.textContent='過關！可回編輯繼續修改地圖。'}}
 function collect(){for(const it of items){if(it.taken||it.type==='door'||!overlap(state.x,state.y,size(state.v).w,it.x,it.y,40))continue;if(it.type==='key'){it.taken=true;state.key++;msg.textContent='已取得鑰匙，目前持有 '+state.key+' 把；碰到門才會開啟。'}else if(state.m<3&&changeStats(state.m+1,state.v)){it.taken=true}drawWorld()}finish()}
 // A one-cell opening must remain reachable with 24/16 px button increments.
 // Correct only a small perpendicular offset; test both swept paths, never shrink the hull.
@@ -186,7 +198,14 @@ function moveX(dx){if(!active())return;moveThroughOpening(dx,0);collect();render
 function moveY(dir){if(!active())return;const [lo,hi]=bounds(D());if(lo===hi||state.y<lo||state.y>hi)return;moveThroughOpening(0,Math.max(lo,Math.min(hi,state.y+dir*16))-state.y);collect();render()}
 function buoy(){if(!active())return;const [lo,hi]=bounds(D()),target=Math.max(lo,Math.min(hi,state.y));step(0,Math.sign(target-state.y)*Math.min(6,Math.abs(target-state.y)));collect();render()}
 function changeV(up){if(!active())return;const vals=[1,2,4],v=vals[vals.indexOf(state.v)+(up?1:-1)];if(v)changeStats(state.m,v)}
-function dropM(){if(active()&&state.m>1)changeStats(state.m-1,state.v)}
+function dropM(){
+ if(!active()||state.m<=1)return;
+ const origin={x:state.x,y:state.y};
+ if(changeStats(state.m-1,state.v)){
+  const dot=rect(stage,'massDrop',origin.x-9,origin.y+12,18,18);dot.setAttribute('aria-hidden','true');
+  setTimeout(()=>dot.remove(),900);playSound('drop');
+ }
+}
 function paint(c,r,halfRow=r*2){
  if(mode!=='edit'||c<0||c>=COLS||r<=0||r>=ROWS-1)return;
  if(tool==='boat'||tool==='goal')map.forEach(row=>row.forEach((v,i)=>{if(v===tool)row[i]=null}));
@@ -299,10 +318,55 @@ $('importBtn').onclick=()=>{if(mode==='edit')$('importFile').click()};
 $('importFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>200000)throw Error();importLevelText(await file.text())}catch(error){msg.textContent='無法讀取關卡，請選擇有效的 JSON 檔。'}};
 function toggleMode(){if(mode==='edit'){build();if(!state||!goalPos){msg.textContent='請先放置小艇與終點。';return}if(blocked(state.x,state.y)){msg.textContent='小艇起點空間不足，請移動起點或清除周圍岩石。';return}mode='play';msg.textContent='試玩中：調整 M / V，利用密度抵達終點。'}else{mode='edit';build();msg.textContent='已回編輯，原地圖與道具完整保留。'}stage.classList.toggle('editing',mode==='edit');$('tools').hidden=mode==='play';$('tools').style.display=mode==='play'?'none':'flex';$('clearBtn').hidden=mode==='play';$('restartBtn').hidden=mode==='edit';$('modeBtn').textContent=mode==='edit'?'▶ 試玩':'✎ 回編輯';$('modeLabel').textContent=mode==='edit'?'編輯模式｜每格 40 × 40':'試玩模式';syncTools();render()}
 $('modeBtn').onclick=toggleMode;$('clearBtn').onclick=()=>{if(mode!=='edit')return;map=Array.from({length:ROWS},()=>Array(COLS).fill(null));halfRocks=[];build();msg.textContent='已清空；上下岩石與四層液體保留。'};$('restartBtn').onclick=()=>{build();msg.textContent='已重新試玩。'};
-$('left').onclick=()=>moveX(-24);$('right').onclick=()=>moveX(24);$('up').onclick=()=>moveY(-1);$('down').onclick=()=>moveY(1);$('vPlus').onclick=()=>changeV(true);$('vMinus').onclick=()=>changeV(false);$('mMinus').onclick=dropM;
+// Pointer controls keep a tap useful, then continue at the keyboard's held speed.
+// No pointer velocity is retained after release; buoyancy remains independent.
+const heldPointers=new Map(),actionPointers=new Map();let pointerFrame=0,pointerTime=0;
+const pointerDirections={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]};
+function stopPointer(id){
+ const held=heldPointers.get(id);if(!held)return;heldPointers.delete(id);
+ if(![...heldPointers.values()].some(p=>p.button===held.button))held.button.classList.remove('held');
+ if(held.button.hasPointerCapture(id))held.button.releasePointerCapture(id);
+ if(!heldPointers.size){cancelAnimationFrame(pointerFrame);pointerFrame=pointerTime=0;}
+}
+function stopActionPointer(id){const button=actionPointers.get(id);if(!button)return;actionPointers.delete(id);button.classList.remove('held');if(button.hasPointerCapture(id))button.releasePointerCapture(id)}
+function resetPointerMotion(){for(const id of [...heldPointers.keys()])stopPointer(id);for(const id of [...actionPointers.keys()])stopActionPointer(id)}
+function pointerAllowed(){return active()&&!document.querySelector('dialog[open]')}
+function pointerTick(time){
+ pointerFrame=0;if(!pointerAllowed()){resetPointerMotion();return}
+ const dt=pointerTime?Math.min(.032,(time-pointerTime)/1000):0;pointerTime=time;
+ const held=[...heldPointers.values()].filter(p=>time>=p.repeatAt);
+ const dx=Math.sign(held.reduce((n,p)=>n+p.dx,0)),dy=Math.sign(held.reduce((n,p)=>n+p.dy,0));
+ if(dx)moveX(dx*160*dt);
+ if(dy&&active()){const [lo,hi]=bounds(D());if(lo!==hi&&state.y>=lo&&state.y<=hi){moveThroughOpening(0,Math.max(lo,Math.min(hi,state.y+dy*110*dt))-state.y);collect();render()}}
+ if(heldPointers.size&&active())pointerFrame=requestAnimationFrame(pointerTick);else resetPointerMotion();
+}
+for(const [id,[dx,dy]] of Object.entries(pointerDirections)){
+ const button=$(id);
+ const tap=()=>dx?moveX(dx*24):moveY(dy);
+ button.addEventListener('pointerdown',e=>{
+  if(e.button!==0||!pointerAllowed())return;e.preventDefault();unlockAudio();
+  heldPointers.set(e.pointerId,{button,dx,dy,repeatAt:performance.now()+150});button.classList.add('held');button.setPointerCapture(e.pointerId);
+  tap();if(active()&&heldPointers.size&&!pointerFrame)pointerFrame=requestAnimationFrame(pointerTick);
+ });
+ button.addEventListener('pointermove',e=>{const r=button.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)stopPointer(e.pointerId)});
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,e=>stopPointer(e.pointerId));
+ button.addEventListener('contextmenu',e=>e.preventDefault());
+ button.onclick=e=>{if(e.detail===0&&pointerAllowed())tap()};
+}
+// Secondary touches do not reliably produce a click. Handle release explicitly,
+// so a second thumb can change M/V while the first keeps a direction held.
+for(const [id,action] of Object.entries({vPlus:()=>changeV(true),vMinus:()=>changeV(false),mMinus:dropM})){
+ const button=$(id),inside=e=>{const r=button.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom};
+ button.addEventListener('pointerdown',e=>{if(e.button!==0||!pointerAllowed())return;e.preventDefault();actionPointers.set(e.pointerId,button);button.classList.add('held');button.setPointerCapture(e.pointerId)});
+ button.addEventListener('pointerup',e=>{const pressed=actionPointers.has(e.pointerId);stopActionPointer(e.pointerId);if(pressed&&inside(e)&&pointerAllowed()){e.preventDefault();action()}});
+ button.addEventListener('pointermove',e=>{if(!inside(e))stopActionPointer(e.pointerId)});
+ for(const type of ['pointercancel','lostpointercapture'])button.addEventListener(type,e=>stopActionPointer(e.pointerId));
+ button.addEventListener('contextmenu',e=>e.preventDefault());
+ button.onclick=e=>{if(e.detail===0&&pointerAllowed())action()};
+}
 // Keyboard-only coast: 160/110 px per second, ~13/9 px release travel.
 const directionKeys=new Set();let keyboardVX=0,keyboardVY=0,keyboardFrame=0,keyboardTime=0;
-function resetKeyboardMotion(){directionKeys.clear();keyboardVX=keyboardVY=keyboardTime=0;if(keyboardFrame)cancelAnimationFrame(keyboardFrame);keyboardFrame=0}
+function resetKeyboardMotion(){directionKeys.clear();keyboardVX=keyboardVY=keyboardTime=0;if(keyboardFrame)cancelAnimationFrame(keyboardFrame);keyboardFrame=0;resetPointerMotion()}
 function keyboardAllowed(){return active()&&!document.querySelector('dialog[open]')&&!document.activeElement?.closest('input,textarea,select,[contenteditable]')}
 function keyboardTick(time){
  keyboardFrame=0;if(!keyboardAllowed()){resetKeyboardMotion();return}
@@ -322,6 +386,46 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>{if(directionKeys.delete(e.code))e.preventDefault()});
 window.addEventListener('blur',resetKeyboardMotion);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetKeyboardMotion()});
 
-function fit(){const w=document.querySelector('.stageWrap').clientWidth,scale=Math.min(1,w/1000);stage.style.transform=`scale(${scale})`;document.querySelector('.stageWrap').style.height=560*scale+'px'}
+function fit(){
+ const wrap=document.querySelector('.stageWrap'),slot=document.querySelector('.stageSlot'),playing=document.body.dataset.view==='play';
+ wrap.style.width='';const scale=Math.min(1,slot.clientWidth/1000,playing?slot.clientHeight/560:1);
+ stage.style.transform=`scale(${scale})`;wrap.style.width=1000*scale+'px';wrap.style.height=560*scale+'px';
+}
+function readPreference(key,fallback){try{return localStorage.getItem('density-'+key)??fallback}catch{return fallback}}
+function savePreference(key,value){try{localStorage.setItem('density-'+key,value)}catch{}}
+let soundEnabled=readPreference('sound','on')!=='off',audioContext=null,audioMaster=null;
+function unlockAudio(){
+ if(!soundEnabled)return;
+ try{
+  const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+  if(!audioContext){audioContext=new Audio();audioMaster=audioContext.createGain();audioMaster.gain.value=.16;audioMaster.connect(audioContext.destination)}
+  if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+ }catch{}
+}
+function setSoundEnabled(value){soundEnabled=value;savePreference('sound',value?'on':'off');if(audioMaster)audioMaster.gain.value=value ? .16 : 0;if(value)unlockAudio()}
+function playSound(kind){
+ if(!soundEnabled)return;unlockAudio();if(!audioContext||audioContext.state!=='running')return;
+ try{
+  const notes=kind==='win'?[523.25,659.25,783.99,1046.5]:[240];
+  notes.forEach((frequency,i)=>{
+   const start=audioContext.currentTime+i*.13,duration=kind==='win'?.24:.18;
+   const tone=audioContext.createOscillator(),gain=audioContext.createGain();tone.type='sine';tone.frequency.setValueAtTime(frequency,start);
+   if(kind==='drop')tone.frequency.exponentialRampToValueAtTime(90,start+duration);
+   gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.7,start+.015);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+   tone.connect(gain);gain.connect(audioMaster);tone.start(start);tone.stop(start+duration+.02);tone.onended=()=>{tone.disconnect();gain.disconnect()};
+  });
+ }catch{}
+}
+function clearFeedback(){document.querySelectorAll('.massDrop,.confetti').forEach(e=>e.remove())}
+function celebrateWin(){
+ $('completionBadge').replaceChildren(document.createTextNode('★ 挑戰成功！ ★'));
+ const detail=document.createElement('small');detail.textContent='成功抵達終點！';$('completionBadge').appendChild(detail);
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(let i=0;i<30;i++){
+  const piece=document.createElement('i');piece.className='confetti';piece.setAttribute('aria-hidden','true');
+  Object.assign(piece.style,{left:(i*37%100)+'%',background:['#f2bd3e','#479b94','#cb718b','#fff'][i%4],animationDelay:(i%6)*.07+'s'});stage.appendChild(piece);setTimeout(()=>piece.remove(),2400);
+ }
+ playSound('win');
+}
+document.addEventListener('pointerdown',unlockAudio,{capture:true});document.addEventListener('keydown',unlockAudio,{capture:true});
 window.addEventListener('resize',fit);stage.classList.add('editing');syncTools();build();fit();msg.textContent='選擇工具並點格子；放好小艇與終點後按「試玩」。';setInterval(buoy,90);
 </script></body></html>

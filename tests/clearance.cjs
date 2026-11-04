@@ -9,7 +9,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE_DIR||'playwright');
   const result=await p.evaluate(()=>{
    const checks=[];const check=(name,fn)=>{if(!fn())throw Error(name);checks.push(name)};
    const boundary=()=>[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];
-   mode='play';items=[];goalPos=null;
+   if(typeof playLevel==='function')playLevel(EXAMPLE_LEVELS[0],EXAMPLE_LEVELS[0].name);mode='play';items=[];goalPos=null;
    // A horizontal opening exactly one hull high; button increments may leave y=108.
    check('horizontal alignment correction',()=>{rocks=[...boundary(),{x:840,y:40,w:40,h:40},{x:840,y:120,w:40,h:400}];state={x:800,y:108,m:1,v:4,key:false,won:false};for(let i=0;i<6;i++)moveX(24);return state.x>=920&&state.y===100&&!blocked(state.x,state.y)});
    for(const v of [1,2,4])check('2-cell vertical opening, V='+v,()=>{

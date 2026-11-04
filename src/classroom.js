@@ -1,4 +1,4 @@
-let appView='play',savedDesign=null,currentGame=null;
+let appView='home',savedDesign=null,currentGame=null;
 let qualifiedFingerprint=null,runFingerprint=null,designRevision=0,qualifiedRevision=-1,internalLoad=false;
 let submissionPending=null,submissionBusy=false,listRevision=0;
 const clone=value=>JSON.parse(JSON.stringify(value));
@@ -8,7 +8,28 @@ function updateClassroom(){
  document.body.dataset.view=appView;$('submitBtn').disabled=!canSubmit();
  $('qualificationStatus').textContent=canSubmit()?'已通關目前關卡，可以投稿。':'請先試玩並通關，再投稿；修改後需重新通關。';
  if(appView==='design'){$('modeBtn').hidden=false;$('levelName').disabled=mode==='play';}
+ syncOrientation();requestAnimationFrame(fit);
 }
+const portraitPhone=matchMedia('(any-pointer: coarse) and (orientation: portrait) and (max-width: 900px)');
+function syncOrientation(){
+ const paused=appView==='play'&&portraitPhone.matches;
+ if(paused!==playPaused){playPaused=paused;resetKeyboardMotion();}
+ $('rotatePrompt').hidden=!paused;
+}
+portraitPhone.addEventListener('change',()=>{syncOrientation();resetKeyboardMotion();requestAnimationFrame(fit)});
+window.addEventListener('resize',resetKeyboardMotion);
+window.visualViewport?.addEventListener('resize',()=>{resetKeyboardMotion();requestAnimationFrame(fit)});
+let controlsSwapped=readPreference('swapped','false')==='true';
+function updatePreferences(){
+ document.body.dataset.swapped=String(controlsSwapped);$('swapControls').setAttribute('aria-pressed',String(controlsSwapped));
+ $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));$('soundToggle').textContent='聲音：'+(soundEnabled?'開':'關');
+}
+$('swapControls').onclick=()=>{resetKeyboardMotion();controlsSwapped=!controlsSwapped;savePreference('swapped',String(controlsSwapped));updatePreferences()};
+$('soundToggle').onclick=()=>{setSoundEnabled(!soundEnabled);updatePreferences()};
+function showHome(){
+ resetKeyboardMotion();clearFeedback();appView='home';updateClassroom();refreshCommunity();
+}
+$('backToLevels').onclick=showHome;$('rotateBack').onclick=showHome;
 function invalidateQualification(){designRevision++;qualifiedFingerprint=null;qualifiedRevision=-1;runFingerprint=null;submissionPending=null;updateClassroom();}
 const originalPaint=paint;
 paint=function(...args){const before=fingerprint();originalPaint(...args);if(appView==='design'&&fingerprint()!==before)invalidateQualification();};
@@ -41,9 +62,9 @@ function loadInPlace(data,view){
  }finally{internalLoad=false;updateClassroom();}
 }
 function playLevel(data,title){
- const previous=currentGame;
+ const previous=currentGame,previousView=appView;
  try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent='正在遊玩：'+title;for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
- catch(error){if(!previous)throw error;loadInPlace(previous.data,'play');currentGame=previous;msg.textContent='無法開始「'+title+'」：'+error.message;return false;}
+ catch(error){if(previous){loadInPlace(previous.data,'play');currentGame=previous;}appView=previousView;updateClassroom();msg.textContent='無法開始「'+title+'」：'+error.message;$('selectionStatus').textContent=msg.textContent;return false;}
 }
 $('designEntry').onclick=()=>{
  if(appView==='design')return;
@@ -52,7 +73,7 @@ $('designEntry').onclick=()=>{
 };
 $('backToPlay').onclick=()=>{
  savedDesign=clone(levelData());if(mode==='play')originalToggle();
- const game=currentGame||{data:EXAMPLE_LEVELS[0],title:EXAMPLE_LEVELS[0].name};playLevel(game.data,game.title);refreshCommunity();
+ showHome();
 };
 $('playRestart').onclick=()=>{if(currentGame)playLevel(currentGame.data,currentGame.title);};
 for(const data of EXAMPLE_LEVELS){const button=document.createElement('button');button.textContent=data.name;button.dataset.officialName=data.name;button.onclick=()=>playLevel(data,data.name);$('officialLevels').appendChild(button);}
@@ -81,7 +102,7 @@ const submissionDialog=$('submissionDialog');
 $('submitBtn').onclick=()=>{
  if(!canSubmit()){msg.textContent='請先成功通關目前設計的關卡，再投稿。';return}
  if(!$('levelName').value.trim()){msg.textContent='請先填寫關卡名稱，並重新試玩通關。';return}
- $('submissionStatus').textContent='';submissionDialog.showModal();
+ resetKeyboardMotion();$('submissionStatus').textContent='';submissionDialog.showModal();
 };
 $('submissionClose').onclick=()=>{if(!submissionBusy)submissionDialog.close();};
 submissionDialog.addEventListener('cancel',e=>{if(submissionBusy)e.preventDefault();});
@@ -100,5 +121,5 @@ $('submissionForm').onsubmit=async e=>{
  }catch(error){$('submissionStatus').textContent=error.message+' 可先匯出 JSON 保存。';}
  finally{submissionBusy=false;$('submissionSend').disabled=false;$('submissionClose').disabled=false;}
 };
-playLevel(EXAMPLE_LEVELS[0],EXAMPLE_LEVELS[0].name);
+updatePreferences();updateClassroom();
 refreshCommunity();
