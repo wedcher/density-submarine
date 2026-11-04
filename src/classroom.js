@@ -24,9 +24,9 @@ let controlsSwapped=readPreference('swapped','false')==='true';
 function updatePreferences(){
  document.body.dataset.swapped=String(controlsSwapped);$('swapControls').setAttribute('aria-pressed',String(controlsSwapped));
  $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.textContent=soundEnabled?'🔊':'🔇';
+ const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.textContent=soundEnabled?'🔈':'🔇';
 }
-$('swapControls').onclick=()=>{resetKeyboardMotion();controlsSwapped=!controlsSwapped;savePreference('swapped',String(controlsSwapped));updatePreferences()};
+$('swapControls').onclick=()=>{resetKeyboardMotion();controlsSwapped=!controlsSwapped;savePreference('swapped',String(controlsSwapped));updatePreferences();requestAnimationFrame(fit)};
 $('soundToggle').onclick=()=>{setSoundEnabled(!soundEnabled);updatePreferences()};
 function showHome(){
  resetKeyboardMotion();clearFeedback();appView='home';updateClassroom();refreshCommunity();
@@ -73,7 +73,7 @@ function loadInPlace(data,view){
 }
 function playLevel(data,title){
  const previous=currentGame,previousView=appView;
- try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent=title;$('playingTitle').title=title;for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
+ try{loadInPlace(data,'play');currentGame={data:clone(data),title};const nameChars=Array.from(data.name||title);$('playingTitle').textContent=nameChars.slice(0,6).join('')+(nameChars.length>6?'…':'');$('playingTitle').title=title;$('playingTitle').setAttribute('aria-label',title);for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
  catch(error){if(previous){loadInPlace(previous.data,'play');currentGame=previous;}appView=previousView;updateClassroom();msg.textContent='無法開始「'+title+'」：'+error.message;$('selectionStatus').textContent=msg.textContent;return false;}
 }
 $('designEntry').onclick=()=>{

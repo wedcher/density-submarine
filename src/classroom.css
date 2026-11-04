@@ -16,24 +16,23 @@ body[data-view="play"] .header,body[data-view="play"] .classroom-nav{display:non
 body[data-view="home"] .level-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
 body[data-view="home"] .level-list button{padding:16px;min-height:64px;font-size:16px}
 #gameBar{display:contents}
-#levelHeading{grid-column:1;grid-row:1/3;align-self:start;display:flex;align-items:start;gap:8px;min-width:0}
-#backToLevels{min-height:44px;flex-shrink:0;padding:6px;font-size:12px;white-space:nowrap}
-.level-caption{min-width:0;font-size:13px;line-height:1.5}
-#playingTitle{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere;font-size:clamp(14px,1.8vw,20px);line-height:1.3;margin-top:4px}
-#gameUtilities{grid-column:3;grid-row:1;display:flex;justify-content:space-between;gap:4px;align-items:start}
-#gameUtilities button{width:44px;height:44px;padding:0;font-size:23px;line-height:1;touch-action:manipulation}
+#levelHeading{grid-column:1/3;grid-row:1;align-self:center;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+#backToLevels{width:34px;height:34px;flex-shrink:0;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
+#playingTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(16px,2.6vw,24px);line-height:1.3}
+#gameUtilities{grid-column:3;grid-row:1;display:flex;justify-content:center;gap:6px;align-items:center}
+#gameUtilities button{width:34px;height:34px;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #swapControls[aria-pressed="true"]{background:#ffe164}
 #soundToggle[aria-pressed="false"]{background:#e3e0db}
 body[data-view="play"]{overflow:hidden;overscroll-behavior:none}
 body[data-view="play"] .wrap{
- --pad-key:clamp(44px,5.9vw,62px);--action-key:clamp(54px,7vw,72px);
+ --pad-key:clamp(44px,5.5vw,58px);--action-key:clamp(54px,6.6vw,68px);
  width:100%;max-width:none;height:100vh;height:100dvh;margin:0;
  padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
- display:grid;grid-template-columns:calc(var(--pad-key)*3 + 16px) minmax(0,1fr) max(140px,calc(var(--action-key)*2 + 12px));
- grid-template-rows:44px minmax(0,1fr);gap:6px 10px;
+ display:grid;grid-template-columns:calc(var(--pad-key)*3 + 16px) minmax(0,1fr) calc(var(--action-key)*2 + 12px);
+ grid-template-rows:34px minmax(0,1fr);gap:6px 10px;
 }
 body[data-view="play"] #gameSurface,body[data-view="play"] .controls{display:contents}
-body[data-view="play"] .hud{grid-column:2;grid-row:1;min-width:0;margin:0;padding:4px 6px;font-size:clamp(12px,1.8vw,20px);justify-content:center;white-space:nowrap}
+body[data-view="play"] .hud{grid-column:2;grid-row:1;justify-self:end;min-width:0;margin:0;padding:3px 5px;font-size:clamp(12px,1.65vw,18px);justify-content:center;white-space:nowrap}
 body[data-view="play"] .hud>div:first-child{display:none}
 body[data-view="play"] .stageSlot{grid-column:2;grid-row:2;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
 body[data-view="play"] .stageWrap{flex-shrink:0;max-width:100%;margin:0}
@@ -49,7 +48,7 @@ body[data-view="play"] #right{grid-column:3;grid-row:2}
 body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:4px}
 body[data-view="play"] .group.right button{width:var(--action-key);height:var(--action-key);font-size:clamp(20px,3vw,30px);padding:0;background:#fff5cf;white-space:nowrap;display:flex;align-items:center;justify-content:center}
 body[data-view="play"] #mMinus{grid-column:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
-body[data-view="play"][data-swapped="true"] .wrap{grid-template-columns:max(140px,calc(var(--action-key)*2 + 12px)) minmax(0,1fr) calc(var(--pad-key)*3 + 16px)}
+body[data-view="play"][data-swapped="true"] .wrap{grid-template-columns:calc(var(--action-key)*2 + 12px) minmax(0,1fr) calc(var(--pad-key)*3 + 16px)}
 body[data-view="play"][data-swapped="true"] .direction-pad{grid-column:3}
 body[data-view="play"][data-swapped="true"] .group.right{grid-column:1}
 body[data-view="play"] .controls button{position:relative;-webkit-tap-highlight-color:transparent}
@@ -64,5 +63,5 @@ body[data-view="play"] .note{display:none}
 .rotate-card{max-width:360px}.rotate-card p{line-height:1.7}.rotate-icon{display:block;font-size:64px;color:#437f81}.rotate-card button{min-height:48px}
 @media(max-height:300px) and (orientation:landscape){
  body[data-view="play"] .wrap{--pad-key:44px;--action-key:54px;column-gap:8px}
- #playingTitle{-webkit-line-clamp:2;font-size:13px}
+ #playingTitle{font-size:16px}
 }

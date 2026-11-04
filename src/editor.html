@@ -392,6 +392,12 @@ function fit(){
  const wrap=document.querySelector('.stageWrap'),slot=document.querySelector('.stageSlot'),playing=document.body.dataset.view==='play';
  wrap.style.width='';const scale=Math.min(1,slot.clientWidth/1000,playing?slot.clientHeight/560:1);
  stage.style.transform=`scale(${scale})`;wrap.style.width=1000*scale+'px';wrap.style.height=560*scale+'px';
+ const hud=document.querySelector('.hud'),heading=$('levelHeading');
+ if(playing){
+  const mapWidth=1000*scale,inset=(slot.clientWidth-mapWidth)/2;
+  hud.style.width=mapWidth*.8+'px';hud.style.marginRight=inset+'px';
+  if(heading)heading.style.width=Math.max(0,slot.getBoundingClientRect().left-heading.getBoundingClientRect().left+inset+mapWidth*.2-8)+'px';
+ }else{hud.style.width='';hud.style.marginRight='';if(heading)heading.style.width='';}
 }
 function readPreference(key,fallback){try{return localStorage.getItem('density-'+key)??fallback}catch{return fallback}}
 function savePreference(key,value){try{localStorage.setItem('density-'+key,value)}catch{}}

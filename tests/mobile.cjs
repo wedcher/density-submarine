@@ -25,14 +25,24 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
    await page.setViewportSize({width,height});await page.waitForTimeout(100);
    const layout=await page.evaluate(()=>{
     const rect=id=>{const {x,y,width,height}=$(id).getBoundingClientRect();return {x,y,width,height}};
-    return {stage:rect('stage'),buttons:['left','right','up','down','vPlus','vMinus','mMinus'].map(rect),vw:innerWidth,vh:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight};
+    return {stage:rect('stage'),hud:document.querySelector('.hud').getBoundingClientRect().toJSON(),heading:rect('levelHeading'),utilities:['backToLevels','playRestart','swapControls','soundToggle'].map(rect),buttons:['left','right','up','down','vPlus','vMinus','mMinus'].map(rect),vw:innerWidth,vh:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight};
    });
    await page.screenshot({path:path.join(artifacts,`mobile-game-${width}x${height}.png`)});
    for(const r of [layout.stage,...layout.buttons]){assert(r.x>=-1&&r.y>=0&&r.x+r.width<=width+1&&r.y+r.height<=height+1,JSON.stringify({width,height,r}));}
    assert(layout.buttons.every(b=>b.width>=44&&b.height>=44));assert(layout.scrollWidth<=width);assert(layout.scrollHeight<=height,JSON.stringify(layout));
    assert(Math.abs(layout.stage.width/layout.stage.height-1000/560)<.01);
+   assert(Math.abs(layout.hud.right-layout.stage.x-layout.stage.width)<1);
+   assert(Math.abs(layout.hud.width-layout.stage.width*.8)<1);
+   assert(layout.heading.x+layout.heading.width<=layout.hud.x-6);
+   for(const r of layout.utilities)assert(Math.abs(r.y-layout.hud.y)<1);
+   const [left,rightButton,upButton,downButton,vp,vm,drop]=layout.buttons;
+   assert(upButton.y<left.y&&downButton.y>left.y&&Math.abs(left.y-rightButton.y)<1);
+   assert(Math.abs(vp.y-vm.y)<1&&vm.x>vp.x&&drop.y>vp.y);
   }
   console.log('PASS portrait pauses with rotate prompt; 667/844/932 landscape fits entire map and >=44px controls without scrolling');
+  await page.evaluate(()=>playLevel({...EXAMPLE_LEVELS[0],name:'一二三四五六七八九'},'一二三四五六七八九'));
+  assert.equal(await page.locator('#playingTitle').textContent(),'一二三四五六…');assert.equal(await page.locator('#playingTitle').getAttribute('title'),'一二三四五六七八九');
+  console.log('PASS header icons on one row, HUD right-aligned with map and yields 20% to left title, six-character title, cross pad and V buttons side by side');
   await page.setViewportSize({width:844,height:390});await prepare();
   const start=await x(),right=await center('right');await touch('touchStart',[right]);await page.waitForTimeout(480);const held=await x();assert(held-start>55);
   await touch('touchEnd');const released=await x();await page.waitForTimeout(240);assert.equal(await x(),released);
