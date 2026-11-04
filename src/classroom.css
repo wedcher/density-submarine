@@ -23,6 +23,8 @@ body[data-view="home"] .level-list button{padding:16px;min-height:64px;font-size
 #gameUtilities button{width:34px;height:34px;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #swapControls[aria-pressed="true"]{background:#ffe164}
 #soundToggle[aria-pressed="false"]{background:#e3e0db}
+.speaker-icon{width:27px;height:27px;display:block;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+#soundToggle{display:flex;align-items:center;justify-content:center}
 body[data-view="play"]{overflow:hidden;overscroll-behavior:none}
 body[data-view="play"] .wrap{
  --pad-key:clamp(44px,5.5vw,58px);--action-key:clamp(54px,6.6vw,68px);
@@ -47,7 +49,9 @@ body[data-view="play"] #down{grid-column:2;grid-row:3}
 body[data-view="play"] #right{grid-column:3;grid-row:2}
 body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:4px}
 body[data-view="play"] .group.right button{width:var(--action-key);height:var(--action-key);font-size:clamp(20px,3vw,30px);padding:0;background:#fff5cf;white-space:nowrap;display:flex;align-items:center;justify-content:center}
-body[data-view="play"] #mMinus{grid-column:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
+body[data-view="play"] #mMinus{grid-column:1;grid-row:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
+body[data-view="play"] #vPlus{grid-column:1;grid-row:2}
+body[data-view="play"] #vMinus{grid-column:2;grid-row:2}
 body[data-view="play"][data-swapped="true"] .wrap{grid-template-columns:calc(var(--action-key)*2 + 12px) minmax(0,1fr) calc(var(--pad-key)*3 + 16px)}
 body[data-view="play"][data-swapped="true"] .direction-pad{grid-column:3}
 body[data-view="play"][data-swapped="true"] .group.right{grid-column:1}

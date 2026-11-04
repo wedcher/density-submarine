@@ -37,9 +37,19 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
    for(const r of layout.utilities)assert(Math.abs(r.y-layout.hud.y)<1);
    const [left,rightButton,upButton,downButton,vp,vm,drop]=layout.buttons;
    assert(upButton.y<left.y&&downButton.y>left.y&&Math.abs(left.y-rightButton.y)<1);
-   assert(Math.abs(vp.y-vm.y)<1&&vm.x>vp.x&&drop.y>vp.y);
+   assert(Math.abs(vp.y-vm.y)<1&&vm.x>vp.x&&drop.y<vp.y);
+   const labelSizes=await page.evaluate(()=>{const scale=stage.getBoundingClientRect().width/1000;return {title:parseFloat(getComputedStyle($('playingTitle')).fontSize),layers:[...document.querySelectorAll('.layer .tag')].map(el=>parseFloat(getComputedStyle(el).fontSize)*scale)}});
+   assert(labelSizes.layers.every(size=>Math.abs(size-labelSizes.title)<.1));
   }
   console.log('PASS portrait pauses with rotate prompt; 667/844/932 landscape fits entire map and >=44px controls without scrolling');
+  assert.equal(await page.locator('.item.key svg').count(),2);
+  assert.equal(await page.locator('.item.mass').textContent(),'M');
+  assert.equal(await page.locator('#hudStatus .key-icon').count(),1);
+  assert(!/鑰匙/.test(await page.locator('#hudStatus').textContent()));
+  const speakerShape=await page.locator('#soundToggle svg path').first().getAttribute('d');
+  await page.locator('#soundToggle').tap();assert.equal(await page.locator('#soundToggle svg path').first().getAttribute('d'),speakerShape);
+  await page.locator('#soundToggle').tap();
+  console.log('PASS drawn key icons, M item label, same-size liquid labels at every scale, matching speaker on/off design');
   await page.evaluate(()=>playLevel({...EXAMPLE_LEVELS[0],name:'一二三四五六七八九'},'一二三四五六七八九'));
   assert.equal(await page.locator('#playingTitle').textContent(),'一二三四五六…');assert.equal(await page.locator('#playingTitle').getAttribute('title'),'一二三四五六七八九');
   console.log('PASS header icons on one row, HUD right-aligned with map and yields 20% to left title, six-character title, cross pad and V buttons side by side');
@@ -82,7 +92,7 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   await page.locator('#swapControls').tap();await page.locator('#soundToggle').tap();await prepare(3,2);
   await page.evaluate(()=>{window.tones=[];const original=audioContext.createOscillator.bind(audioContext);audioContext.createOscillator=()=>{const oscillator=original();window.tones.push(oscillator);return oscillator}});
   const massButton=await center('mMinus');await touch('touchStart',[massButton]);await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>state.m),3);await touch('touchEnd');
-  await page.waitForFunction(()=>state.m===2);assert.equal(await page.locator('.massDrop').count(),1);assert(await page.evaluate(()=>tones.length===1&&audioContext.state==='running'&&audioMaster.gain.value>0));
+  await page.waitForFunction(()=>state.m===2);assert.equal(await page.locator('.massDrop').count(),1);assert(await page.evaluate(()=>tones.length===1&&tones[0].type==='triangle'&&audioContext.state==='running'&&audioMaster.gain.value>0));
   await page.screenshot({path:path.join(artifacts,'mobile-mass-drop.png')});
   await page.locator('#soundToggle').tap();await page.locator('#mMinus').tap();assert.equal(await page.evaluate(()=>state.m),1);assert.equal(await page.evaluate(()=>tones.length),1);assert.equal(await page.evaluate(()=>audioMaster.gain.value),0);
   await page.waitForTimeout(950);await page.locator('#mMinus').tap();assert.equal(await page.locator('.massDrop').count(),0);assert.equal(await page.evaluate(()=>tones.length),1);

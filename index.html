@@ -58,6 +58,10 @@ button.active{background:var(--ink);color:white}.levelGrid{display:grid;grid-tem
 @keyframes winBadge{from{opacity:0;transform:translateX(-50%) scale(.6)}to{opacity:1;transform:translateX(-50%) scale(1)}}
 @keyframes winGlow{50%{filter:brightness(1.5);box-shadow:0 0 22px 8px #ffd44b}}
 .controls button{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.key-icon{display:inline-block;width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+#hudStatus,.key-count{display:flex;align-items:center;justify-content:center;gap:.4em}
+.key-count .key-icon{width:1.25em;height:1.25em}
+.layer .tag{font-size:var(--layer-label-size,16px);line-height:1.1;white-space:nowrap}
 .controls button.held{background:#ffe164;box-shadow:inset 0 0 0 2px #8c6d00;transform:translateY(2px)}
 .massDrop{border:2px solid white;box-shadow:0 0 0 2px #243139;animation:massFall .85s ease-in forwards}
 @keyframes massFall{0%{transform:translateY(0);opacity:1}70%{opacity:1}100%{transform:translateY(100px) scale(.7);opacity:0}}
@@ -92,6 +96,8 @@ body[data-view="home"] .level-list button{padding:16px;min-height:64px;font-size
 #gameUtilities button{width:34px;height:34px;padding:0;font-size:25px;line-height:1;touch-action:manipulation}
 #swapControls[aria-pressed="true"]{background:#ffe164}
 #soundToggle[aria-pressed="false"]{background:#e3e0db}
+.speaker-icon{width:27px;height:27px;display:block;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+#soundToggle{display:flex;align-items:center;justify-content:center}
 body[data-view="play"]{overflow:hidden;overscroll-behavior:none}
 body[data-view="play"] .wrap{
  --pad-key:clamp(44px,5.5vw,58px);--action-key:clamp(54px,6.6vw,68px);
@@ -116,7 +122,9 @@ body[data-view="play"] #down{grid-column:2;grid-row:3}
 body[data-view="play"] #right{grid-column:3;grid-row:2}
 body[data-view="play"] .group.right{grid-column:3;grid-row:2;align-self:end;justify-self:center;display:grid;grid-template-columns:repeat(2,var(--action-key));gap:12px;margin-bottom:4px}
 body[data-view="play"] .group.right button{width:var(--action-key);height:var(--action-key);font-size:clamp(20px,3vw,30px);padding:0;background:#fff5cf;white-space:nowrap;display:flex;align-items:center;justify-content:center}
-body[data-view="play"] #mMinus{grid-column:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
+body[data-view="play"] #mMinus{grid-column:1;grid-row:1;background:#e0edf1;font-size:clamp(18px,2.5vw,26px)}
+body[data-view="play"] #vPlus{grid-column:1;grid-row:2}
+body[data-view="play"] #vMinus{grid-column:2;grid-row:2}
 body[data-view="play"][data-swapped="true"] .wrap{grid-template-columns:calc(var(--action-key)*2 + 12px) minmax(0,1fr) calc(var(--pad-key)*3 + 16px)}
 body[data-view="play"][data-swapped="true"] .direction-pad{grid-column:3}
 body[data-view="play"][data-swapped="true"] .group.right{grid-column:1}
@@ -190,7 +198,7 @@ body[data-view="play"] .note{display:none}
 <div class="controls">
 <div class="group direction-pad" role="group" aria-label="按住方向鍵移動，放開停止"><button class="move" id="left" aria-label="向左">←</button><button class="move" id="up" aria-label="向上">↑</button><button class="move" id="down" aria-label="向下">↓</button><button class="move" id="right" aria-label="向右">→</button></div>
 <div class="readout"><b id="densityText"></b><div class="sub" id="stateText"></div></div>
-<div class="group right"><button id="vPlus">V＋</button><button id="vMinus">V－</button><button id="mMinus">丟 M</button></div>
+<div class="group right"><button id="mMinus">丟 M</button><button id="vPlus">V＋</button><button id="vMinus">V－</button></div>
 </div>
 <div class="msg" id="msg"></div><div class="answer" id="answer"></div>
 <div class="note">← → 移動；↑ ↓ 在相同密度層內移動；Num ＋／－ 改 V；Num ＊ 丟 M。通道依當下船身尺寸判定；投稿前須自行通關。新關卡初始 M=1、V=1，匯入時沿用檔案設定。半格岩石為 1 格寬 × 0.5 格高，依點擊位置對齊上／下半格；小艇仍需 1 格高的通道。</div>
@@ -248,9 +256,10 @@ function openDoorsAt(x,y){
 }
 function overlap(x,y,w,ix,iy,iw){return Math.abs(x-ix)<(w+iw)/2&&Math.abs(y-iy)<40}
 function rect(parent,cls,x,y,w,h,text=''){const e=document.createElement('div');e.className=cls;e.textContent=text;Object.assign(e.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});parent.appendChild(e);return e}
-function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=>rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=>!i.taken).forEach(i=>rect($('itemLayer'),'item '+i.type+(i.type==='door'&&i.open?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M+':i.type==='key'?'鑰匙':i.open?'開':'門'));goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
+function keyIcon(){return '<svg class="key-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 27 27m-7-7 4-4m0 8 4-4"/></svg>'}
+function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=>rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=>!i.taken).forEach(i=>{const element=rect($('itemLayer'),'item '+i.type+(i.type==='door'&&i.open?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M':i.type==='key'?'':i.open?'開':'門');if(i.type==='key'){element.innerHTML=keyIcon();element.setAttribute('role','img');element.setAttribute('aria-label','鑰匙')}});goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
 function build(){resetKeyboardMotion();clearFeedback();boat.classList.remove('celebrate');if($('completionBadge'))$('completionBadge').hidden=true;rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=>row.forEach((type,c)=>{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:0,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=>rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
-function render(){boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').textContent=`M=${state.m}　V=${state.v}　D=${fmt(d)}　鑰匙：${state.key} 把`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
+function render(){boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(118,Math.min(882,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').innerHTML=`<span>M=${state.m}　V=${state.v}　D=${fmt(d)}</span> <span class=key-count aria-label="鑰匙：${state.key}把">${keyIcon()}<span>${state.key}</span></span>`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
 // All M/V changes are transactional; resolve collisions in connected nearby water.
 // Reposition only inside the new density region, or horizontally while in transit.
 function changeStats(m,v){
@@ -516,6 +525,7 @@ function fit(){
   hud.style.width=mapWidth*.8+'px';hud.style.marginRight=inset+'px';
   if(heading)heading.style.width=Math.max(0,slot.getBoundingClientRect().left-heading.getBoundingClientRect().left+inset+mapWidth*.2-8)+'px';
  }else{hud.style.width='';hud.style.marginRight='';if(heading)heading.style.width='';}
+ const title=$('playingTitle');if(playing&&title&&scale>0)stage.style.setProperty('--layer-label-size',parseFloat(getComputedStyle(title).fontSize)/scale+'px');else stage.style.removeProperty('--layer-label-size');
 }
 function readPreference(key,fallback){try{return localStorage.getItem('density-'+key)??fallback}catch{return fallback}}
 function savePreference(key,value){try{localStorage.setItem('density-'+key,value)}catch{}}
@@ -532,12 +542,12 @@ function setSoundEnabled(value){soundEnabled=value;savePreference('sound',value?
 function playSound(kind){
  if(!soundEnabled)return;unlockAudio();if(!audioContext||audioContext.state!=='running')return;
  try{
-  const notes=kind==='win'?[523.25,659.25,783.99,1046.5]:[240];
+  const notes=kind==='win'?[523.25,659.25,783.99,1046.5]:[880];
   notes.forEach((frequency,i)=>{
-   const start=audioContext.currentTime+i*.13,duration=kind==='win'?.24:.18;
-   const tone=audioContext.createOscillator(),gain=audioContext.createGain();tone.type='sine';tone.frequency.setValueAtTime(frequency,start);
-   if(kind==='drop')tone.frequency.exponentialRampToValueAtTime(90,start+duration);
-   gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.7,start+.015);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+   const start=audioContext.currentTime+i*.13,duration=kind==='win'?.24:.32;
+   const tone=audioContext.createOscillator(),gain=audioContext.createGain();tone.type=kind==='drop'?'triangle':'sine';tone.frequency.setValueAtTime(frequency,start);
+   if(kind==='drop'){tone.frequency.exponentialRampToValueAtTime(180,start+.10);tone.frequency.exponentialRampToValueAtTime(90,start+duration)}
+   gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(kind==='drop'?1:.7,start+.008);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
    tone.connect(gain);gain.connect(audioMaster);tone.start(start);tone.stop(start+duration+.02);tone.onended=()=>{tone.disconnect();gain.disconnect()};
   });
  }catch{}
@@ -610,10 +620,11 @@ portraitPhone.addEventListener('change',()=>{syncOrientation();resetKeyboardMoti
 // actual orientation change (above), blur or cancellation should clear input.
 window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(fit));
 let controlsSwapped=readPreference('swapped','false')==='true';
+function speakerIcon(enabled){return '<svg class="speaker-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h6l7-6v20l-7-6H5z"/>'+ (enabled?'<path d="M22 11c3 3 3 7 0 10m4-14c5 5 5 13 0 18"/>':'<path d="m22 12 7 8m0-8-7 8"/>')+'</svg>'}
 function updatePreferences(){
  document.body.dataset.swapped=String(controlsSwapped);$('swapControls').setAttribute('aria-pressed',String(controlsSwapped));
  $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.textContent=soundEnabled?'🔈':'🔇';
+ const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.innerHTML=speakerIcon(soundEnabled);
 }
 $('swapControls').onclick=()=>{resetKeyboardMotion();controlsSwapped=!controlsSwapped;savePreference('swapped',String(controlsSwapped));updatePreferences();requestAnimationFrame(fit)};
 $('soundToggle').onclick=()=>{setSoundEnabled(!soundEnabled);updatePreferences()};

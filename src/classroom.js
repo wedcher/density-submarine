@@ -21,10 +21,11 @@ portraitPhone.addEventListener('change',()=>{syncOrientation();resetKeyboardMoti
 // actual orientation change (above), blur or cancellation should clear input.
 window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(fit));
 let controlsSwapped=readPreference('swapped','false')==='true';
+function speakerIcon(enabled){return '<svg class="speaker-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h6l7-6v20l-7-6H5z"/>'+ (enabled?'<path d="M22 11c3 3 3 7 0 10m4-14c5 5 5 13 0 18"/>':'<path d="m22 12 7 8m0-8-7 8"/>')+'</svg>'}
 function updatePreferences(){
  document.body.dataset.swapped=String(controlsSwapped);$('swapControls').setAttribute('aria-pressed',String(controlsSwapped));
  $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.textContent=soundEnabled?'🔈':'🔇';
+ const soundLabel='聲音：'+(soundEnabled?'開':'關');$('soundToggle').setAttribute('aria-label',soundLabel);$('soundToggle').title=soundLabel;$('soundToggle').firstElementChild.innerHTML=speakerIcon(soundEnabled);
 }
 $('swapControls').onclick=()=>{resetKeyboardMotion();controlsSwapped=!controlsSwapped;savePreference('swapped',String(controlsSwapped));updatePreferences();requestAnimationFrame(fit)};
 $('soundToggle').onclick=()=>{setSoundEnabled(!soundEnabled);updatePreferences()};
