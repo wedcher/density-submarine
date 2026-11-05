@@ -168,6 +168,17 @@ function changeStats(m,v){
  if(blocked(state.x,state.y,v)){
   const [lo,hi]=bounds(d),inRegion=state.y>=lo&&state.y<=hi;
   const queue=[[0,0]],seen=new Set(['0,0']);let best=null,bestDistance=Infinity;
+  // Integer nudges cannot fit fractional positions into an exact-width gap.
+  // Align to solid edges using the old hull's unobstructed horizontal path.
+  const edges=[s.w/2,WIDTH-s.w/2];
+  for(const r of rocks)edges.push(r.x-s.w/2,r.x+r.w+s.w/2);
+  for(const it of items)if(it.type==='door'&&!it.open)edges.push(it.x-20-s.w/2,it.x+20+s.w/2);
+  for(const x of edges){
+   const dx=x-state.x,distance=dx*dx;
+   if(distance<=s.w*s.w&&distance<bestDistance&&!blocked(x,state.y,v)&&clearPath(state.x,state.y,dx,0)){
+    best={x,y:state.y};bestDistance=distance;
+   }
+  }
   // Search connected nearby water using the old hull. Never jump through rock.
   for(let index=0;index<queue.length;index++){
    const [dx,dy]=queue[index],distance=dx*dx+dy*dy,x=state.x+dx,y=state.y+dy;
