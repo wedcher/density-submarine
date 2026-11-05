@@ -1,5 +1,11 @@
 # 密度小艇：正式版本與今日進度
 
+## 2026-11-05 官方七關排序與命名
+
+依使用者要求新增桌面提供的 01一馬平川、02上上下下 JSON（逐位元組比對一致）。原五關依序改為 03如何下去、04雙邊抉擇、05蝸牛地形、06蝸牛地形2、07卡來卡去；逐關深度比對，除 name 外的資料完全相同。levels/sources.json 保留來源指紋，新增兩檔來源；檔名與首頁均按 01～07 排序。
+
+build-site 完成；tests/site.cjs 通過七關名稱／順序／匯入啟動、既有編輯與模擬投稿流程。tests/buoyancy.cjs 更新舊題路徑後通過，保留原雙邊抉擇地圖的回歸內容。本輪沒有完整解出七關、沒有真實 Google 投稿或實體裝置測試；未重跑其他測試。僅更新 test/editor-landscape-workflow 與原私人測試站，部署結果記於 test-results/deployment-levels.txt。main 與正式 Pages 不變。
+
 ## 2026-11-05 橫向編輯器與試玩投稿流程
 
 使用者確認需求並說「開始動工」後，以 git ls-remote 核對遠端 test/mobile-landscape-controls 與本機均為 11243c53bd363aa400f89ef0307a7fc1727df8b2，建立 test/editor-landscape-workflow。main 仍為 fa14b12e0954f86f0e6a38d916f309641c391829。

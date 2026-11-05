@@ -1,0 +1,52 @@
+{
+  "name": "01一馬平川",
+  "format": "density-submarine-level",
+  "version": 1,
+  "rules": "density-lock-v1",
+  "grid": {
+    "columns": 25,
+    "rows": 14,
+    "cellPixels": 40,
+    "halfRowsPerCell": 2,
+    "fixedRockRows": [
+      0,
+      13
+    ]
+  },
+  "liquids": [
+    {
+      "density": 0.25,
+      "topHalfRow": 2,
+      "bottomHalfRow": 8
+    },
+    {
+      "density": 0.5,
+      "topHalfRow": 8,
+      "bottomHalfRow": 14
+    },
+    {
+      "density": 1,
+      "topHalfRow": 14,
+      "bottomHalfRow": 20
+    },
+    {
+      "density": 2,
+      "topHalfRow": 20,
+      "bottomHalfRow": 26
+    }
+  ],
+  "initial": {
+    "m": 1,
+    "v": 1
+  },
+  "start": {
+    "column": 22,
+    "row": 8
+  },
+  "goal": {
+    "column": 3,
+    "row": 2
+  },
+  "rocks": [],
+  "items": []
+}

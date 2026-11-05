@@ -1,5 +1,5 @@
 {
-  "name": "螺旋2選一( 兩條都要走)",
+  "name": "05蝸牛地形",
   "format": "density-submarine-level",
   "version": 1,
   "rules": "density-lock-v1",
@@ -48,12 +48,6 @@
     "row": 8
   },
   "rocks": [
-    {
-      "column": 9,
-      "halfRow": 5,
-      "widthCells": 1,
-      "heightHalfRows": 1
-    },
     {
       "column": 10,
       "halfRow": 5,
@@ -123,12 +117,6 @@
     {
       "column": 21,
       "halfRow": 5,
-      "widthCells": 1,
-      "heightHalfRows": 1
-    },
-    {
-      "column": 9,
-      "halfRow": 6,
       "widthCells": 1,
       "heightHalfRows": 1
     },
@@ -756,21 +744,6 @@
       "type": "mass",
       "column": 4,
       "row": 1
-    },
-    {
-      "type": "door",
-      "column": 13,
-      "row": 7
-    },
-    {
-      "type": "door",
-      "column": 14,
-      "row": 7
-    },
-    {
-      "type": "key",
-      "column": 17,
-      "row": 8
     },
     {
       "type": "mass",

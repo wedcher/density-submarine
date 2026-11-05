@@ -11,11 +11,12 @@ async function winDraft(page){await page.locator('#modeBtn').click();await page.
  for(const context of [first,second]){await mountBackend(context,backend);await context.addInitScript(()=>{window.setInterval=()=>0;window.showSaveFilePicker=undefined});}
  const a=await first.newPage(),b=await second.newPage(),errors=[];a.on('dialog',d=>d.accept());for(const page of [a,b])page.on('pageerror',e=>errors.push(e.message));
  await a.goto(site.url);await b.goto(site.url);await a.waitForFunction(()=>$('communityStatus').textContent.includes('目前還沒有'));await b.waitForFunction(()=>$('communityStatus').textContent.includes('目前還沒有'));
- assert.equal(await a.evaluate(()=>appView),'home');assert(await a.locator('#gameSurface').isHidden());assert(await a.locator('#materialRow').isHidden());assert.equal(await a.locator('#officialLevels button').count(),5);
- console.log('PASS default level selection, 5 official templates, background bridge readiness');
+ assert.equal(await a.evaluate(()=>appView),'home');assert(await a.locator('#gameSurface').isHidden());assert(await a.locator('#materialRow').isHidden());assert.equal(await a.locator('#officialLevels button').count(),7);
+ console.log('PASS default level selection, 7 official templates, background bridge readiness');
+ assert.deepEqual(await a.locator('#officialLevels button').allTextContents(),['01一馬平川','02上上下下','03如何下去','04雙邊抉擇','05蝸牛地形','06蝸牛地形2','07卡來卡去']);
  const sources=JSON.parse(fs.readFileSync(path.join(root,'levels/sources.json'),'utf8'));
  for(let i=0;i<sources.levels.length;i++){await a.locator('#officialLevels button').nth(i).click();assert.equal(await a.evaluate(()=>mode),'play');assert(await a.evaluate(()=>state&&!blocked(state.x,state.y)));const expected=JSON.parse(fs.readFileSync(path.join(root,'levels',sources.levels[i].file),'utf8'));expected.rocks.sort((x,y)=>x.halfRow-y.halfRow||x.column-y.column);assert.deepEqual(await a.evaluate(()=>levelData()),expected);await a.locator('#backToLevels').click();}
- console.log('PASS all 5 user templates import/start unchanged; no template or student width restriction; full solutions not asserted');
+ console.log('PASS all 7 user templates import/start unchanged; no template or student width restriction; full solutions not asserted');
  for(const report of reports){const data=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures',report.name+'.json'),'utf8'));assert(await winRecorded(a,data,report));assert(!await a.evaluate(()=>canSubmit()));}
  console.log('PASS prior 5 solved regression routes; ordinary play cannot qualify a design');
  await a.locator('#backToLevels').click();await a.locator('#designEntry').click();assert.equal(await a.evaluate(()=>appView),'design');assert.equal(await a.evaluate(()=>mode),'edit');assert(await a.locator('#submitBtn').isDisabled());

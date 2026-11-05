@@ -2,34 +2,48 @@
   "sourceFolder": "密度小艇_匯出的關卡/範本題",
   "levels": [
     {
-      "file": "01_雙邊抉擇 (2).json",
-      "originalFile": "01雙邊抉擇 (2).json",
-      "originalSha256": "a5fc054ecf97e59be00d1136b686a7b33c63715ee40223a558494ce607574bcc",
-      "adjustment": "added name from original filename; map and rules unchanged"
+      "file": "01一馬平川.json",
+      "originalFile": "01一馬平川.json",
+      "source": "user-provided file, 2026-11-05",
+      "originalSha256": "4cbee067df58335eae12756f929f9d7808d026287632520586f3ee3347e84623",
+      "adjustment": "none"
     },
     {
-      "file": "02_要繞路拿M.json",
+      "file": "02上上下下.json",
+      "originalFile": "02上上下下.json",
+      "source": "user-provided file, 2026-11-05",
+      "originalSha256": "acff191b2de7202ae936122a7f950fbdf65624a3e4aabefc348f9437f0c0a23c",
+      "adjustment": "none"
+    },
+    {
+      "file": "03如何下去.json",
       "originalFile": "02要繞路拿M.json",
       "originalSha256": "db305903b9cc64586a131ce87453fe4d1fd8fe1c0cf044386721ff17e8d42b5f",
-      "adjustment": "added name from original filename; map and rules unchanged"
+      "adjustment": "renamed to 03如何下去 by user request; map and rules unchanged"
     },
     {
-      "file": "03_螺旋二選一(單一).json",
+      "file": "04雙邊抉擇.json",
+      "originalFile": "01雙邊抉擇 (2).json",
+      "originalSha256": "a5fc054ecf97e59be00d1136b686a7b33c63715ee40223a558494ce607574bcc",
+      "adjustment": "renamed to 04雙邊抉擇 by user request; map and rules unchanged"
+    },
+    {
+      "file": "05蝸牛地形.json",
       "originalFile": "03螺旋二選一(單一).json",
       "originalSha256": "c99a10327f6fc24ccb082a80c7e8b7c636272e73554aa22c08056035669073d4",
-      "adjustment": "none"
+      "adjustment": "renamed to 05蝸牛地形 by user request; map and rules unchanged"
     },
     {
-      "file": "04_螺旋2選一( 兩條都要走).json",
+      "file": "06蝸牛地形2.json",
       "originalFile": "04螺旋2選一( 兩條都要走).json",
       "originalSha256": "a75e1478ca4d3d565536de2d4eea306809bd7aafff87937d5da3048766d26c0d",
-      "adjustment": "none"
+      "adjustment": "renamed to 06蝸牛地形2 by user request; map and rules unchanged"
     },
     {
-      "file": "05_卡來卡去1028.json",
+      "file": "07卡來卡去.json",
       "originalFile": "05卡來卡去1028.json",
       "originalSha256": "3b4493481b3b1160f36c73462af4d67769c5c1d5dcaedee49381dc6a2ed23bd6",
-      "adjustment": "none"
+      "adjustment": "renamed to 07卡來卡去 by user request; map and rules unchanged"
     }
   ]
 }

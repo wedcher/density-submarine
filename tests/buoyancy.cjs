@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_DIR||'playwright');
-const level=JSON.parse(fs.readFileSync(path.join(__dirname,'../levels/01_雙邊抉擇 (2).json'),'utf8'));
+const level=JSON.parse(fs.readFileSync(path.join(__dirname,'../levels/04雙邊抉擇.json'),'utf8'));
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
  try{
@@ -51,6 +51,6 @@ const level=JSON.parse(fs.readFileSync(path.join(__dirname,'../levels/01_雙邊�
    await live.screenshot({path:path.join(artifacts,'buoyancy-'+name+'-after.png')});
   }
   assert.deepEqual(errors,[]);await live.close();
-  console.log('PASS real buoyancy timer rises from both screenshot locations on the unchanged first template');
+  console.log('PASS real buoyancy timer rises from both screenshot locations on the unchanged 雙邊抉擇 template');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
