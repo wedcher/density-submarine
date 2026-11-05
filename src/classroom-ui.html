@@ -2,7 +2,7 @@
  <button id="designEntry"><span class="tool-icon" aria-hidden="true">✏️</span>設計／投稿關卡</button><button id="backToPlay"><span class="tool-icon" aria-hidden="true">↩</span>返回選關</button>
 </nav>
 <section id="homePanel" class="classroom-panel">
- <p class="classroom-hint">選一關開始探索！手機進入關卡後請橫放，按住方向鍵就能持續移動。</p>
+ <p class="classroom-hint">遊戲與編輯器只提供橫向版面，請將手機橫放使用。按住方向鍵即可持續移動。</p>
  <h2>官方示範關卡</h2><div id="officialLevels" class="level-list"></div>
  <h2 style="margin-top:14px">同學投稿關卡</h2>
  <button id="communityRefresh">重新整理清單</button><p id="communityStatus" class="classroom-hint" role="status"></p><div id="communityLevels" class="level-list"></div>
@@ -17,6 +17,8 @@
   <button id="soundToggle" aria-label="聲音：開" aria-pressed="true" title="聲音：開"><span aria-hidden="true">🔈</span></button>
  </div>
 </nav>
+<div id="designTop" aria-label="關卡資料與操作"><input id="authorName" aria-label="作者暱稱" placeholder="作者暱稱" maxlength="40" autocomplete="off"></div>
+<div id="trialActions"><button id="trialReturn">✎ 回編輯</button><button id="trialSubmit" hidden>📮 投稿關卡</button></div>
 <aside id="rotatePrompt" hidden aria-labelledby="rotateTitle">
  <div class="rotate-card"><span class="rotate-icon" aria-hidden="true">↻ ▭</span><h2 id="rotateTitle">請將手機橫放</h2><p>中央看關卡，兩側操作小艇。</p><p>橫放後繼續遊玩；目前已暫停。</p><button id="rotateBack">← 返回選關</button></div>
 </aside>

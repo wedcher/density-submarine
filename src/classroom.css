@@ -84,3 +84,57 @@ body[data-view="play"] .direction-pad button{font-size:calc(var(--pad-key)*.65)}
 body[data-view="play"] .group.right button{font-size:calc(var(--action-key)*.43)}
 body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
 }
+
+/* Landscape editor and trial workflow. Only the tools panel scrolls. */
+#designTop,#trialActions{display:none}
+body[data-view="design"],body[data-view="play"]{overflow:hidden;overscroll-behavior:none}
+body[data-view="design"] .header,body[data-view="design"] .classroom-nav,
+body[data-view="design"] #levelRow,body[data-view="design"] #designPanel,
+body[data-view="design"] .hud,body[data-view="design"] .controls,
+body[data-view="design"] .note,body[data-view="design"] .msg{display:none}
+body[data-view="design"] .wrap{width:var(--scene-width,100vw);height:var(--scene-height,100dvh);max-width:none;margin:0;padding:8px max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);grid-template-rows:auto minmax(0,1fr);gap:10px}
+body[data-view="design"] #designTop{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(100px,1.6fr) minmax(90px,1fr) repeat(4,auto);gap:7px;align-items:stretch}
+#designTop button,#designTop input{min-width:0;min-height:44px;font-size:clamp(12px,1.5vw,20px);white-space:nowrap;padding:7px 9px}
+#designTop input{width:100%;max-width:none;border:2px solid #bfb6a8;border-radius:10px;background:#fff;font-family:inherit}
+#designTop #submitBtn:disabled{opacity:.4;cursor:default}
+body[data-view="design"] #gameSurface{display:contents}
+body[data-view="design"] .stageSlot{grid-column:1;grid-row:2;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px}
+body[data-view="design"] .stageWrap{max-width:none;flex-shrink:0;margin:0;overflow:hidden}
+body[data-view="design"] #materialRow{grid-column:2;grid-row:2;display:flex;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;flex-wrap:nowrap;padding:0 4px 6px;margin:0;border:0;background:transparent;gap:10px}
+#materialRow #qualificationStatus{font-size:clamp(12px,1.5vw,20px);color:#625c50;text-align:right;line-height:1.5}
+body[data-view="design"] #tools{display:grid!important;grid-template-columns:1fr;gap:9px}
+body[data-view="design"] .editor-cluster{width:auto;display:flex;flex-wrap:wrap;padding:0;background:transparent;gap:7px}
+body[data-view="design"] .cluster-label{min-width:3em;font-size:clamp(12px,1.4vw,19px)}
+body[data-view="design"] #tools button{font-size:clamp(14px,1.8vw,25px);min-height:44px;padding:10px 12px}
+body[data-view="design"] .clear-group{display:flex;justify-content:flex-end}
+body[data-view="design"] #doodleTools{flex-shrink:0;gap:8px;display:flex;flex-wrap:wrap;margin-top:auto;padding-top:12px}
+body[data-view="design"] #doodleTools .toolbar-hint{width:100%;font-size:12px}
+body[data-view="design"] #doodleTools button{min-height:44px;font-size:clamp(13px,1.5vw,20px)}
+body[data-trial="true"] #trialActions{display:flex;position:fixed;z-index:65;bottom:8px;left:50%;transform:translateX(-50%);gap:8px}
+#trialActions button{min-height:44px;background:#fffdfa;box-shadow:0 2px 8px #24313933}
+#trialSubmit{background:#ffe164!important}#trialSubmit[hidden]{display:none}
+body[data-trial="true"] .direction-pad,body[data-trial="true"] .group.right{margin-bottom:50px}
+body[data-view="play"] .wrap{width:var(--scene-width,100vw);height:var(--scene-height,100dvh)}
+#submissionName{display:block;width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #bfb6a8;border-radius:7px}
+body[data-rotated="true"] .wrap{position:absolute;left:100%;top:0;transform-origin:top left;transform:rotate(90deg);width:var(--scene-width);height:var(--scene-height)}
+body[data-rotated="true"] #trialActions{position:absolute}
+body[data-rotated="true"] #submissionDialog{position:fixed;inset:auto;left:50%;top:50%;width:min(520px,calc(var(--scene-width) - 28px));max-width:none;max-height:calc(var(--scene-height) - 24px);margin:0;transform:translate(-50%,-50%) rotate(90deg)}
+body[data-rotated="true"][data-view="play"] .wrap{--pad-key:44px;--action-key:54px;grid-template-columns:148px minmax(0,1fr) 120px;padding:6px 10px}
+body[data-rotated="true"][data-view="play"][data-swapped="true"] .wrap{grid-template-columns:120px minmax(0,1fr) 148px}
+@media(max-width:760px){body[data-view="design"] #designTop{grid-template-columns:auto minmax(100px,1fr) minmax(90px,1fr) auto}#designTop #exportBtn,#designTop #importBtn,#designTop #submitBtn{min-height:36px}body[data-view="design"] .wrap{gap:6px}}
+body[data-rotated="true"][data-view="design"] #designTop{grid-template-columns:auto minmax(100px,1.6fr) minmax(90px,1fr) repeat(4,auto)}
+body[data-view="design"] #tools{grid-template-columns:minmax(0,1fr) auto;align-items:start}
+body[data-view="design"] #tools .editor-cluster{grid-column:1;flex-wrap:nowrap}
+body[data-view="design"] #tools .editor-cluster:nth-child(1){grid-row:1}
+body[data-view="design"] #tools .editor-cluster:nth-child(2){grid-row:2}
+body[data-view="design"] #tools .editor-cluster:nth-child(3){grid-row:3;grid-column:1/-1}
+body[data-view="design"] #tools .editor-cluster:nth-child(4){grid-row:2;grid-column:2}
+body[data-view="design"] #tools .editor-cluster:nth-child(4) .cluster-label{display:none}
+body[data-view="design"] #tools .clear-group{grid-row:1;grid-column:2}
+body[data-view="design"] #tools button{padding:8px 7px;font-size:clamp(12px,1.5vw,22px)}
+body[data-view="design"] #tools .tool-icon{margin-right:3px;font-size:1em}
+body[data-view="design"] #tools .cluster-label{min-width:3em;font-size:clamp(11px,1.3vw,18px);margin-right:0}
+@media(max-width:760px){body[data-view="design"] #tools .editor-cluster{gap:4px}body[data-view="design"] #tools button{padding:8px 5px}}
+body[data-view="design"] #materialRow{overflow-x:hidden}
+body[data-view="design"] #tools .editor-cluster{min-width:0}
+body[data-view="design"] #tools button{min-width:0;flex-shrink:1}

@@ -160,6 +160,60 @@ body[data-view="play"] .group.right button{font-size:calc(var(--action-key)*.43)
 body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
 }
 
+/* Landscape editor and trial workflow. Only the tools panel scrolls. */
+#designTop,#trialActions{display:none}
+body[data-view="design"],body[data-view="play"]{overflow:hidden;overscroll-behavior:none}
+body[data-view="design"] .header,body[data-view="design"] .classroom-nav,
+body[data-view="design"] #levelRow,body[data-view="design"] #designPanel,
+body[data-view="design"] .hud,body[data-view="design"] .controls,
+body[data-view="design"] .note,body[data-view="design"] .msg{display:none}
+body[data-view="design"] .wrap{width:var(--scene-width,100vw);height:var(--scene-height,100dvh);max-width:none;margin:0;padding:8px max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);grid-template-rows:auto minmax(0,1fr);gap:10px}
+body[data-view="design"] #designTop{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(100px,1.6fr) minmax(90px,1fr) repeat(4,auto);gap:7px;align-items:stretch}
+#designTop button,#designTop input{min-width:0;min-height:44px;font-size:clamp(12px,1.5vw,20px);white-space:nowrap;padding:7px 9px}
+#designTop input{width:100%;max-width:none;border:2px solid #bfb6a8;border-radius:10px;background:#fff;font-family:inherit}
+#designTop #submitBtn:disabled{opacity:.4;cursor:default}
+body[data-view="design"] #gameSurface{display:contents}
+body[data-view="design"] .stageSlot{grid-column:1;grid-row:2;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px}
+body[data-view="design"] .stageWrap{max-width:none;flex-shrink:0;margin:0;overflow:hidden}
+body[data-view="design"] #materialRow{grid-column:2;grid-row:2;display:flex;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;flex-wrap:nowrap;padding:0 4px 6px;margin:0;border:0;background:transparent;gap:10px}
+#materialRow #qualificationStatus{font-size:clamp(12px,1.5vw,20px);color:#625c50;text-align:right;line-height:1.5}
+body[data-view="design"] #tools{display:grid!important;grid-template-columns:1fr;gap:9px}
+body[data-view="design"] .editor-cluster{width:auto;display:flex;flex-wrap:wrap;padding:0;background:transparent;gap:7px}
+body[data-view="design"] .cluster-label{min-width:3em;font-size:clamp(12px,1.4vw,19px)}
+body[data-view="design"] #tools button{font-size:clamp(14px,1.8vw,25px);min-height:44px;padding:10px 12px}
+body[data-view="design"] .clear-group{display:flex;justify-content:flex-end}
+body[data-view="design"] #doodleTools{flex-shrink:0;gap:8px;display:flex;flex-wrap:wrap;margin-top:auto;padding-top:12px}
+body[data-view="design"] #doodleTools .toolbar-hint{width:100%;font-size:12px}
+body[data-view="design"] #doodleTools button{min-height:44px;font-size:clamp(13px,1.5vw,20px)}
+body[data-trial="true"] #trialActions{display:flex;position:fixed;z-index:65;bottom:8px;left:50%;transform:translateX(-50%);gap:8px}
+#trialActions button{min-height:44px;background:#fffdfa;box-shadow:0 2px 8px #24313933}
+#trialSubmit{background:#ffe164!important}#trialSubmit[hidden]{display:none}
+body[data-trial="true"] .direction-pad,body[data-trial="true"] .group.right{margin-bottom:50px}
+body[data-view="play"] .wrap{width:var(--scene-width,100vw);height:var(--scene-height,100dvh)}
+#submissionName{display:block;width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #bfb6a8;border-radius:7px}
+body[data-rotated="true"] .wrap{position:absolute;left:100%;top:0;transform-origin:top left;transform:rotate(90deg);width:var(--scene-width);height:var(--scene-height)}
+body[data-rotated="true"] #trialActions{position:absolute}
+body[data-rotated="true"] #submissionDialog{position:fixed;inset:auto;left:50%;top:50%;width:min(520px,calc(var(--scene-width) - 28px));max-width:none;max-height:calc(var(--scene-height) - 24px);margin:0;transform:translate(-50%,-50%) rotate(90deg)}
+body[data-rotated="true"][data-view="play"] .wrap{--pad-key:44px;--action-key:54px;grid-template-columns:148px minmax(0,1fr) 120px;padding:6px 10px}
+body[data-rotated="true"][data-view="play"][data-swapped="true"] .wrap{grid-template-columns:120px minmax(0,1fr) 148px}
+@media(max-width:760px){body[data-view="design"] #designTop{grid-template-columns:auto minmax(100px,1fr) minmax(90px,1fr) auto}#designTop #exportBtn,#designTop #importBtn,#designTop #submitBtn{min-height:36px}body[data-view="design"] .wrap{gap:6px}}
+body[data-rotated="true"][data-view="design"] #designTop{grid-template-columns:auto minmax(100px,1.6fr) minmax(90px,1fr) repeat(4,auto)}
+body[data-view="design"] #tools{grid-template-columns:minmax(0,1fr) auto;align-items:start}
+body[data-view="design"] #tools .editor-cluster{grid-column:1;flex-wrap:nowrap}
+body[data-view="design"] #tools .editor-cluster:nth-child(1){grid-row:1}
+body[data-view="design"] #tools .editor-cluster:nth-child(2){grid-row:2}
+body[data-view="design"] #tools .editor-cluster:nth-child(3){grid-row:3;grid-column:1/-1}
+body[data-view="design"] #tools .editor-cluster:nth-child(4){grid-row:2;grid-column:2}
+body[data-view="design"] #tools .editor-cluster:nth-child(4) .cluster-label{display:none}
+body[data-view="design"] #tools .clear-group{grid-row:1;grid-column:2}
+body[data-view="design"] #tools button{padding:8px 7px;font-size:clamp(12px,1.5vw,22px)}
+body[data-view="design"] #tools .tool-icon{margin-right:3px;font-size:1em}
+body[data-view="design"] #tools .cluster-label{min-width:3em;font-size:clamp(11px,1.3vw,18px);margin-right:0}
+@media(max-width:760px){body[data-view="design"] #tools .editor-cluster{gap:4px}body[data-view="design"] #tools button{padding:8px 5px}}
+body[data-view="design"] #materialRow{overflow-x:hidden}
+body[data-view="design"] #tools .editor-cluster{min-width:0}
+body[data-view="design"] #tools button{min-width:0;flex-shrink:1}
+
 </style>
 </head>
 <body>
@@ -169,7 +223,7 @@ body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
  <button id="designEntry"><span class="tool-icon" aria-hidden="true">✏️</span>設計／投稿關卡</button><button id="backToPlay"><span class="tool-icon" aria-hidden="true">↩</span>返回選關</button>
 </nav>
 <section id="homePanel" class="classroom-panel">
- <p class="classroom-hint">選一關開始探索！手機進入關卡後請橫放，按住方向鍵就能持續移動。</p>
+ <p class="classroom-hint">遊戲與編輯器只提供橫向版面，請將手機橫放使用。按住方向鍵即可持續移動。</p>
  <h2>官方示範關卡</h2><div id="officialLevels" class="level-list"></div>
  <h2 style="margin-top:14px">同學投稿關卡</h2>
  <button id="communityRefresh">重新整理清單</button><p id="communityStatus" class="classroom-hint" role="status"></p><div id="communityLevels" class="level-list"></div>
@@ -184,6 +238,8 @@ body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
   <button id="soundToggle" aria-label="聲音：開" aria-pressed="true" title="聲音：開"><span aria-hidden="true">🔈</span></button>
  </div>
 </nav>
+<div id="designTop" aria-label="關卡資料與操作"><input id="authorName" aria-label="作者暱稱" placeholder="作者暱稱" maxlength="40" autocomplete="off"></div>
+<div id="trialActions"><button id="trialReturn">✎ 回編輯</button><button id="trialSubmit" hidden>📮 投稿關卡</button></div>
 <aside id="rotatePrompt" hidden aria-labelledby="rotateTitle">
  <div class="rotate-card"><span class="rotate-icon" aria-hidden="true">↻ ▭</span><h2 id="rotateTitle">請將手機橫放</h2><p>中央看關卡，兩側操作小艇。</p><p>橫放後繼續遊玩；目前已暫停。</p><button id="rotateBack">← 返回選關</button></div>
 </aside>
@@ -226,6 +282,7 @@ body[data-view="play"] #mMinus{font-size:calc(var(--action-key)*.38)}
  <form id="submissionForm">
   <h2 id="submissionTitle">投稿給同學遊玩</h2>
   <p>關卡名稱、暱稱與地圖會公開在同學關卡清單。請使用暱稱，不填真實姓名、電話或聯絡資料。投稿不需登入。</p>
+  <label>關卡名稱（必填）<input id="submissionName" maxlength="120" required autocomplete="off" placeholder="未命名關卡"></label>
   <label>作者暱稱（必填）<input id="submissionAuthor" maxlength="40" required autocomplete="off"></label>
   <label>設計想法（選填，供收件者保存）<textarea id="submissionNote" maxlength="1000" rows="3"></textarea></label>
   <div class="submission-trap" aria-hidden="true"><input id="submissionWebsite" tabindex="-1" autocomplete="off" aria-label="請留白"></div>
@@ -375,7 +432,7 @@ function paint(c,r,halfRow=r*2){
  }
  build();
 }
-function pointAt(e){const b=stage.getBoundingClientRect();return {x:(e.clientX-b.left)*WIDTH/b.width,y:(e.clientY-b.top)*HEIGHT/b.height}}
+function pointAt(e){const b=stage.getBoundingClientRect();return document.body.dataset.rotated==='true'?{x:(e.clientY-b.top)*WIDTH/b.height,y:(b.right-e.clientX)*HEIGHT/b.width}:{x:(e.clientX-b.left)*WIDTH/b.width,y:(e.clientY-b.top)*HEIGHT/b.height}}
 function cellAt(e){const p=pointAt(e);return [Math.floor(p.x/CELL),Math.floor(p.y/(CELL/2))]}
 function paintHalfCell(c,h){paint(c,Math.floor(h/2),h)}
 stage.addEventListener('pointerdown',e=>{if(mode!=='edit'||e.button!==0||doodleTool)return;e.preventDefault();stage.setPointerCapture(e.pointerId);drawing=true;lastCell=cellAt(e);paintHalfCell(...lastCell)});
@@ -545,16 +602,16 @@ window.addEventListener('blur',resetKeyboardMotion);document.addEventListener('v
 
 function fit(){
  const wrap=document.querySelector('.stageWrap'),slot=document.querySelector('.stageSlot'),playing=document.body.dataset.view==='play';
- wrap.style.width='';const scale=Math.min(1,slot.clientWidth/1000,playing?slot.clientHeight/560:1);
+ wrap.style.width='';const scale=Math.min(1,slot.clientWidth/1000,(playing||document.body.dataset.view==='design')?slot.clientHeight/560:1);
  stage.style.transform=`scale(${scale})`;wrap.style.width=1000*scale+'px';wrap.style.height=560*scale+'px';
  const hud=document.querySelector('.hud'),heading=$('levelHeading');
  if(playing){
   const mapWidth=1000*scale,inset=(slot.clientWidth-mapWidth)/2;
   hud.style.width=mapWidth*.8+'px';hud.style.marginRight=inset+'px';
-  if(heading)heading.style.width=Math.max(0,slot.getBoundingClientRect().left-heading.getBoundingClientRect().left+inset+mapWidth*.2-8)+'px';
+  if(heading){const axis=document.body.dataset.rotated==='true'?'top':'left';heading.style.width=Math.max(0,slot.getBoundingClientRect()[axis]-heading.getBoundingClientRect()[axis]+inset+mapWidth*.2-8)+'px';}
  }else{hud.style.width='';hud.style.marginRight='';if(heading)heading.style.width='';}
  if(playing&&scale>0)stage.style.setProperty('--boat-formula-size',parseFloat(getComputedStyle(hud).fontSize)/scale+'px');else stage.style.removeProperty('--boat-formula-size');
- const title=$('playingTitle');if(playing&&title&&scale>0)stage.style.setProperty('--layer-label-size',parseFloat(getComputedStyle(title).fontSize)/scale+'px');else stage.style.removeProperty('--layer-label-size');
+ const title=$('playingTitle');if(playing&&title&&scale>0)stage.style.setProperty('--layer-label-size',parseFloat(getComputedStyle(title).fontSize)/scale+'px');else if(document.body.dataset.view==='design'&&scale>0)stage.style.setProperty('--layer-label-size',14/scale+'px');else stage.style.removeProperty('--layer-label-size');
 }
 function readPreference(key,fallback){try{return localStorage.getItem('density-'+key)??fallback}catch{return fallback}}
 function savePreference(key,value){try{localStorage.setItem('density-'+key,value)}catch{}}
@@ -630,24 +687,41 @@ let appView='home',savedDesign=null,currentGame=null;
 let qualifiedFingerprint=null,runFingerprint=null,designRevision=0,qualifiedRevision=-1,internalLoad=false;
 let submissionPending=null,submissionBusy=false,listRevision=0;
 const clone=value=>JSON.parse(JSON.stringify(value));
-const fingerprint=()=>JSON.stringify(levelData());
+const fingerprint=()=>{const {name,...gameplay}=levelData();return JSON.stringify(gameplay)};
 function canSubmit(){return appView==='design'&&qualifiedFingerprint!==null&&qualifiedRevision===designRevision&&qualifiedFingerprint===fingerprint();}
 function updateClassroom(){
- document.body.dataset.view=appView;$('submitBtn').disabled=!canSubmit();
- $('qualificationStatus').textContent=canSubmit()?'已通關目前關卡，可以投稿。':'請先試玩並通關，再投稿；修改後需重新通關。';
- if(appView==='design'){$('modeBtn').hidden=false;$('levelName').disabled=mode==='play';}
+ document.body.dataset.view=appView==='design'&&mode==='play'?'play':appView;
+ document.body.dataset.trial=String(appView==='design'&&mode==='play');
+ $('submitBtn').disabled=!canSubmit();$('trialSubmit').hidden=!canSubmit();
+ $('qualificationStatus').textContent=canSubmit()?'已通關，可以投稿。':'試玩成功可投稿關卡';
+ if(appView==='design'){$('modeBtn').hidden=false;$('levelName').disabled=false;}
  syncOrientation();requestAnimationFrame(fit);
 }
 const portraitPhone=matchMedia('(any-pointer: coarse) and (orientation: portrait) and (max-width: 900px)');
 function syncOrientation(){
- const paused=appView==='play'&&portraitPhone.matches;
- if(paused!==playPaused){playPaused=paused;resetKeyboardMotion();}
- $('rotatePrompt').hidden=!paused;
+ playPaused=false;$('rotatePrompt').hidden=true;
+ const width=document.documentElement.clientWidth,height=document.documentElement.clientHeight;
+ const rotated=appView!=='home'&&matchMedia('(any-pointer: coarse)').matches&&height>width;
+ document.body.dataset.rotated=String(rotated);
+ document.documentElement.style.setProperty('--scene-width',(rotated?height:width)+'px');
+ document.documentElement.style.setProperty('--scene-height',(rotated?width:height)+'px');
+ requestAnimationFrame(fit);
 }
 portraitPhone.addEventListener('change',()=>{syncOrientation();resetKeyboardMotion();requestAnimationFrame(fit)});
 // Browser chrome can change viewport height while a thumb is held. Only an
 // actual orientation change (above), blur or cancellation should clear input.
-window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(fit));
+window.visualViewport?.addEventListener('resize',()=>{syncOrientation();requestAnimationFrame(fit)});
+window.addEventListener('resize',syncOrientation);
+async function tryLandscapeLock(){
+ if(!matchMedia('(any-pointer: coarse)').matches)return;
+ document.body.dataset.orientationLock='unsupported';
+ if(typeof screen.orientation?.lock!=='function')return;
+ try{
+  if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
+  await screen.orientation.lock('landscape');document.body.dataset.orientationLock='locked';
+ }catch{document.body.dataset.orientationLock='fallback'}
+ syncOrientation();requestAnimationFrame(fit);
+}
 let controlsSwapped=readPreference('swapped','false')==='true';
 function speakerIcon(enabled){return '<svg class="speaker-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h6l7-6v20l-7-6H5z"/>'+ (enabled?'<path d="M22 11c3 3 3 7 0 10m4-14c5 5 5 13 0 18"/>':'<path d="m22 12 7 8m0-8-7 8"/>')+'</svg>'}
 function updatePreferences(){
@@ -660,7 +734,7 @@ $('soundToggle').onclick=()=>{setSoundEnabled(!soundEnabled);updatePreferences()
 function showHome(){
  resetKeyboardMotion();clearFeedback();appView='home';updateClassroom();refreshCommunity();
 }
-$('backToLevels').onclick=showHome;$('rotateBack').onclick=showHome;
+$('backToLevels').onclick=()=>{if(appView==='design')toggleMode();else showHome()};$('rotateBack').onclick=showHome;
 let messageTimer=0;
 msg.setAttribute('role','status');
 new MutationObserver(()=>{
@@ -675,12 +749,12 @@ paint=function(...args){const before=fingerprint();originalPaint(...args);if(app
 const originalImport=importLevelText;
 importLevelText=function(text){const ok=originalImport(text);if(ok&&appView==='design'&&!internalLoad)invalidateQualification();return ok;};
 const originalClear=$('clearBtn').onclick;
-$('clearBtn').onclick=()=>{if(mode!=='edit')return;originalClear();if(appView==='design')invalidateQualification();};
-$('levelName').addEventListener('input',()=>{if(appView==='design')invalidateQualification();});
+$('clearBtn').onclick=()=>{if(mode!=='edit'||!confirm('確定清空地圖？小艇、終點、岩石與道具將移除，塗鴉保留。'))return;originalClear();if(appView==='design')invalidateQualification();};
+$('levelName').addEventListener('input',()=>{submissionPending=null;updateClassroom();});
 const originalToggle=toggleMode;
 toggleMode=function(){
  const starting=appView==='design'&&mode==='edit';if(starting)runFingerprint=fingerprint();
- originalToggle();if(starting&&mode!=='play')runFingerprint=null;
+ originalToggle();if(starting&&mode==='play'){$('playingTitle').textContent=$('levelName').value||'未命名關卡';tryLandscapeLock();}if(starting&&mode!=='play')runFingerprint=null;
  if(!starting&&mode==='edit')runFingerprint=null;updateClassroom();
 };
 $('modeBtn').onclick=toggleMode;
@@ -689,7 +763,7 @@ finish=function(){
  const wasWon=state?.won;originalFinish();
  if(!wasWon&&state?.won&&appView==='play')msg.textContent='過關！可選擇其他關卡，或設計關卡給同學。';
  if(!wasWon&&state?.won&&appView==='design'&&runFingerprint&&runFingerprint===fingerprint()){
-  qualifiedFingerprint=runFingerprint;qualifiedRevision=designRevision;msg.textContent='已通關目前關卡！可以直接投稿，或回編輯；修改後需重新通關。';updateClassroom();
+  qualifiedFingerprint=runFingerprint;qualifiedRevision=designRevision;msg.textContent='已通關！可投稿並修改名稱與暱稱，或返回編輯。';updateClassroom();
  }
 };
 function loadInPlace(data,view){
@@ -701,11 +775,13 @@ function loadInPlace(data,view){
  }finally{internalLoad=false;updateClassroom();}
 }
 function playLevel(data,title){
+ tryLandscapeLock();
  const previous=currentGame,previousView=appView;
  try{loadInPlace(data,'play');currentGame={data:clone(data),title};$('playingTitle').textContent=data.name||title;$('playingTitle').title=title;$('playingTitle').setAttribute('aria-label',title);for(const button of $('officialLevels').children){const selected=button.dataset.officialName===data.name&&EXAMPLE_LEVELS.some(level=>JSON.stringify(level)===JSON.stringify(data));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))}msg.textContent='調整 M／V，利用密度抵達終點。';return true;}
  catch(error){if(previous){loadInPlace(previous.data,'play');currentGame=previous;}appView=previousView;updateClassroom();msg.textContent='無法開始「'+title+'」：'+error.message;$('selectionStatus').textContent=msg.textContent;return false;}
 }
 $('designEntry').onclick=()=>{
+ tryLandscapeLock();
  if(appView==='design')return;
  const draft=savedDesign||{...clone(EXAMPLE_LEVELS[0]),name:'',start:null,goal:null,rocks:[],items:[],initial:{m:1,v:1}};
  loadInPlace(draft,'design');msg.textContent='設計關卡後先試玩通關，再投稿給同學。';
@@ -714,7 +790,7 @@ $('backToPlay').onclick=()=>{
  savedDesign=clone(levelData());if(mode==='play')originalToggle();
  showHome();
 };
-$('playRestart').onclick=()=>{if(currentGame)playLevel(currentGame.data,currentGame.title);};
+$('playRestart').onclick=()=>{if(appView==='design'){build();runFingerprint=fingerprint();updateClassroom()}else if(currentGame)playLevel(currentGame.data,currentGame.title);};
 for(const data of EXAMPLE_LEVELS){const button=document.createElement('button');button.textContent=data.name;button.dataset.officialName=data.name;button.onclick=()=>playLevel(data,data.name);$('officialLevels').appendChild(button);}
 async function refreshCommunity(){
  const revision=++listRevision;$('communityRefresh').disabled=true;$('communityStatus').textContent='正在讀取同學關卡…';
@@ -740,9 +816,16 @@ $('communityRefresh').onclick=refreshCommunity;
 const submissionDialog=$('submissionDialog');
 $('submitBtn').onclick=()=>{
  if(!canSubmit()){msg.textContent='請先成功通關目前設計的關卡，再投稿。';return}
- if(!$('levelName').value.trim()){msg.textContent='請先填寫關卡名稱，並重新試玩通關。';return}
+ $('submissionName').value=$('levelName').value;$('submissionAuthor').value=$('authorName').value;
  resetKeyboardMotion();$('submissionStatus').textContent='';submissionDialog.showModal();
 };
+$('trialSubmit').onclick=()=>$('submitBtn').click();
+$('trialReturn').onclick=()=>toggleMode();
+$('submissionName').addEventListener('input',()=>{$('levelName').value=$('submissionName').value;submissionPending=null});
+function setAuthor(value){$('authorName').value=value;savePreference('author',value);submissionPending=null}
+$('authorName').value=readPreference('author','');
+$('authorName').addEventListener('input',()=>setAuthor($('authorName').value));
+$('submissionAuthor').addEventListener('input',()=>setAuthor($('submissionAuthor').value));
 $('submissionClose').onclick=()=>{if(!submissionBusy)submissionDialog.close();};
 submissionDialog.addEventListener('cancel',e=>{if(submissionBusy)e.preventDefault();});
 $('submissionForm').onsubmit=async e=>{
@@ -760,6 +843,12 @@ $('submissionForm').onsubmit=async e=>{
  }catch(error){$('submissionStatus').textContent=error.message+' 可先匯出 JSON 保存。';}
  finally{submissionBusy=false;$('submissionSend').disabled=false;$('submissionClose').disabled=false;}
 };
+// Reuse the existing controls so file handling and editor state have one owner.
+const designTop=$('designTop');
+for(const id of ['backToPlay','levelName','authorName','modeBtn','exportBtn','importBtn','submitBtn'])designTop.appendChild($(id));
+$('levelName').setAttribute('aria-label','關卡名稱');
+$('materialRow').prepend($('qualificationStatus'));
+const clearGroup=document.createElement('div');clearGroup.className='clear-group';clearGroup.appendChild($('clearBtn'));$('tools').appendChild(clearGroup);
 updatePreferences();updateClassroom();
 refreshCommunity();
 

@@ -6,7 +6,7 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
  const site=await startSite(),browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
  try{
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2});
-  await mountBackend(context,createBackend());const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await context.addInitScript(()=>{Element.prototype.requestFullscreen=async()=>{throw Error('Test unsupported fullscreen')}});await mountBackend(context,createBackend());const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   const client=await context.newCDPSession(page);
   const touch=async(type,points=[])=>client.send('Input.dispatchTouchEvent',{type,touchPoints:points.map((p,i)=>({x:p.x,y:p.y,id:p.id??i+1,radiusX:3,radiusY:3}))});
   const center=async id=>{const b=await page.locator('#'+id).boundingBox();return {x:b.x+b.width/2,y:b.y+b.height/2}};
@@ -17,8 +17,8 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   },{m,v});
   await page.goto(site.url);await page.waitForFunction(()=>$('communityStatus').textContent.includes('目前還沒有'));
   assert(await page.locator('#gameSurface').isHidden());await page.screenshot({path:path.join(artifacts,'mobile-levels.png')});
-  await page.locator('#officialLevels button').first().tap();assert(await page.locator('#rotatePrompt').isVisible());
-  const pausedState=await page.evaluate(()=>JSON.stringify(state));await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>JSON.stringify(state)),pausedState);
+  await page.locator('#officialLevels button').first().tap();assert(await page.locator('#rotatePrompt').isHidden());
+  assert.equal(await page.evaluate(()=>document.body.dataset.rotated),'true');assert.equal(await page.evaluate(()=>playPaused),false);
   await page.screenshot({path:path.join(artifacts,'mobile-rotate.png')});
   await page.setViewportSize({width:844,height:390});await page.waitForFunction(()=>!playPaused);assert(await page.locator('#homePanel').isHidden());
   for(const [width,height] of [[844,390],[667,375],[932,430],[844,327],[667,280]]){
@@ -47,7 +47,7 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
    const labelSizes=await page.evaluate(()=>{const scale=stage.getBoundingClientRect().width/1000;return {title:parseFloat(getComputedStyle($('playingTitle')).fontSize),layers:[...document.querySelectorAll('.layer .tag')].map(el=>parseFloat(getComputedStyle(el).fontSize)*scale)}});
    assert(labelSizes.layers.every(size=>Math.abs(size-labelSizes.title)<.1));
   }
-  console.log('PASS portrait pauses with rotate prompt; 667/844/932 landscape fits entire map and >=44px controls without scrolling');
+  console.log('PASS portrait keeps landscape content without prompt or pause; 667/844/932 landscape fits entire map and >=44px controls without scrolling');
   assert.equal(await page.locator('.item.key svg').count(),2);
   assert.equal(await page.locator('.item.mass').textContent(),'M');
   assert.equal(await page.locator('#hudStatus .key-icon').count(),1);
@@ -96,7 +96,7 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
   await touch('touchStart',[right,volume]);await page.waitForTimeout(80);await touch('touchEnd',[{...volume,id:2}]);
   assert.equal(await page.evaluate(()=>state.v),2);const simultaneous=await x();await page.waitForTimeout(180);assert(await x()>simultaneous);await touch('touchEnd');
   console.log('PASS one thumb keeps moving while the other taps V+ exactly once');
-  await prepare();await touch('touchStart',[right]);await page.waitForTimeout(200);await page.setViewportSize({width:390,height:844});await page.waitForFunction(()=>playPaused);await touch('touchEnd');
+  await prepare();await touch('touchStart',[right]);await page.waitForTimeout(200);await page.setViewportSize({width:390,height:844});await page.waitForFunction(()=>document.body.dataset.rotated==='true'&&!playPaused);await touch('touchEnd');
   const rotated=await x();await page.waitForTimeout(200);assert.equal(await x(),rotated);await page.setViewportSize({width:844,height:390});await page.waitForFunction(()=>!playPaused);await page.waitForTimeout(200);assert.equal(await x(),rotated);
   await page.locator('#swapControls').tap();assert.equal(await page.locator('#swapControls').getAttribute('aria-pressed'),'true');assert((await center('right')).x>(await center('vPlus')).x);
   assert(Math.abs((await center('right')).y-(await center('vPlus')).y)<1);
