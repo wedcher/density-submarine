@@ -387,6 +387,13 @@ function verticalAlignmentOffsets(){
  for(const door of items)if(door.type==='door'&&!door.open)targets.push(door.x-20-half,door.x+20+half);
  return [...new Set(targets)].map(x=>x-state.x).filter(dx=>Math.abs(dx)>1e-9&&Math.abs(dx)<=12).sort((a,b)=>Math.abs(a)-Math.abs(b)||a-b);
 }
+function horizontalAlignmentOffsets(){
+ const targets=[];
+ for(const r of rocks)targets.push(r.y-20,r.y+r.h+20);
+ for(const door of items)if(door.type==='door'&&!door.open)targets.push(door.y-40,door.y+40);
+ // Exact edges remove fractional drift in passages exactly one hull high.
+ return [...new Set([...targets.map(y=>y-state.y),...Array.from({length:8},(_,i)=>[-i-1,i+1]).flat()])].filter(dy=>Math.abs(dy)>1e-9&&Math.abs(dy)<=8).sort((a,b)=>Math.abs(a)-Math.abs(b)||a-b);
+}
 function moveThroughOpening(dx,dy,buoyant=false){
  const start={x:state.x,y:state.y,d:D()},horizontal=dx!==0;
  step(dx,dy);
@@ -394,13 +401,15 @@ function moveThroughOpening(dx,dy,buoyant=false){
  const remaining=horizontal?start.x+dx-state.x:start.y+dy-state.y;
  if(Math.abs(remaining)<1e-8)return;
  const [lo,hi]=bounds(D());
- const offsets=horizontal?Array.from({length:8},(_,i)=>[-i-1,i+1]).flat():verticalAlignmentOffsets();
+ const offsets=horizontal?horizontalAlignmentOffsets():verticalAlignmentOffsets();
  for(const offset of offsets){
   const ax=horizontal?0:offset,ay=horizontal?offset:0;
   const x=state.x+ax,y=state.y+ay,rx=horizontal?remaining:0,ry=horizontal?0:remaining;
-  // Buoyancy already points toward the density region. Its alignment is only
-  // horizontal; manual movement keeps the original density-region restriction.
-  if(((!buoyant||horizontal)&&(y<lo||y>hi))||!clearPath(state.x,state.y,ax,ay)||!clearPath(x,y,rx,ry))continue;
+  // Outside the density band, a horizontal passage may align only toward it,
+  // never farther away. Manual vertical movement retains its original bounds.
+  const distanceToBand=value=>Math.max(lo-value,0,value-hi);
+  const allowed=horizontal?distanceToBand(y)<=distanceToBand(state.y):buoyant||(y>=lo&&y<=hi);
+  if(!allowed||!clearPath(state.x,state.y,ax,ay)||!clearPath(x,y,rx,ry))continue;
   step(ax,ay);
   if(!state.won&&D()===start.d)step(rx,ry);
   return;

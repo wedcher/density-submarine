@@ -48,6 +48,8 @@ const artifacts=path.join(__dirname,'../test-results');fs.mkdirSync(artifacts,{r
    assert(labelSizes.layers.every(size=>Math.abs(size-labelSizes.title)<.1));
   }
   console.log('PASS portrait keeps landscape content without prompt or pause; 667/844/932 landscape fits entire map and >=44px controls without scrolling');
+  // Icon coverage must not depend on whichever official level is listed first.
+  await page.evaluate(()=>playLevel({...EXAMPLE_LEVELS[0],rocks:[],items:[{type:'key',column:10,row:8},{type:'key',column:11,row:8},{type:'mass',column:12,row:8}]},'道具圖示測試'));
   assert.equal(await page.locator('.item.key svg').count(),2);
   assert.equal(await page.locator('.item.mass').textContent(),'M');
   assert.equal(await page.locator('#hudStatus .key-icon').count(),1);
