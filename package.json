@@ -6,7 +6,7 @@
   "scripts": {
     "preview": "node scripts/preview.cjs",
     "build": "node scripts/build-site.cjs && node scripts/build-google.cjs",
-    "test": "node tests/site.cjs && node tests/cloud.cjs && node tests/clearance.cjs && node tests/gameplay.cjs && node tests/mobile.cjs && node tests/buoyancy.cjs && node tests/editor.cjs && node tests/horizontal-clearance.cjs && node tests/volume.cjs"
+    "test": "node tests/site.cjs && node tests/cloud.cjs && node tests/clearance.cjs && node tests/gameplay.cjs && node tests/mobile.cjs && node tests/buoyancy.cjs && node tests/editor.cjs && node tests/horizontal-clearance.cjs && node tests/volume.cjs && node tests/volume-browser.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

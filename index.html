@@ -345,11 +345,41 @@ function updateDensityReadout(){
 function drawWorld(){ $('rockLayer').innerHTML='';rocks.forEach(r=>rect($('rockLayer'),'rock',r.x,r.y,r.w,r.h));$('itemLayer').innerHTML='';items.filter(i=>!i.taken).forEach(i=>{const element=rect($('itemLayer'),'item '+i.type+(i.type==='door'&&i.open?' open':''),i.x-20,i.y-20,40,40,i.type==='mass'?'M':i.type==='key'?'':i.open?'開':'門');if(i.type==='key'){element.innerHTML=keyIcon();element.setAttribute('role','img');element.setAttribute('aria-label','鑰匙')}});goal.hidden=!goalPos;if(goalPos){goal.style.left=goalPos.x-20+'px';goal.style.top=goalPos.y-20+'px'}}
 function build(){resetKeyboardMotion();clearFeedback();boat.classList.remove('celebrate');if($('completionBadge'))$('completionBadge').hidden=true;rocks=[{x:0,y:0,w:1000,h:40},{x:0,y:520,w:1000,h:40}];items=[];goalPos=null;state=null;map.forEach((row,r)=>row.forEach((type,c)=>{const x=c*40+20,y=r*40+20;if(type==='rock')rocks.push({x:x-20,y:y-20,w:40,h:40});else if(type==='boat')state={x,y,m:initial.m,v:initial.v,key:0,won:false};else if(type==='goal')goalPos={x,y};else if(type)items.push({type,x,y,taken:false})}));halfRocks.forEach(r=>rocks.push({x:r.column*CELL,y:r.halfRow*(CELL/2),w:CELL,h:CELL/2}));drawWorld();render()}
 function render(){updateDensityReadout();boat.hidden=!state;document.querySelectorAll('.controls button').forEach(b=>b.disabled=mode!=='play'||state?.won);if(!state){$('hudStatus').textContent='請放置一個小艇與終點';$('massDots').textContent='';$('densityText').textContent='D = M / V';$('stateText').textContent='';return}const d=D(),s=size(state.v),sty=densityStyles[String(d)];Object.assign(boat.style,{left:state.x+'px',top:state.y+'px',width:s.w+'px',height:s.h+'px'});document.querySelector('.hull').style.backgroundColor=sty.bg;honey(document.querySelector('.hullDots'),d,sty.dot,.68);const card=document.querySelector('.formulaCard');card.style.left=Math.max(card.offsetWidth/2+3,Math.min(997-card.offsetWidth/2,state.x))-state.x+'px';card.style.bottom=state.y<110?'auto':'calc(100% + 4px)';card.style.top=state.y<110?'calc(100% + 4px)':'auto';$('fD').textContent='D('+fmt(d)+')';$('fM').textContent='M('+state.m+')';$('fV').textContent='V('+state.v+')';$('massDots').textContent='●'.repeat(state.m);$('hudStatus').innerHTML=`<span>M=${state.m}　V=${state.v}　D=${fmt(d)}</span> <span class=key-count aria-label="鑰匙：${state.key}把">${keyIcon()}<span>${state.key}</span></span>`;$('densityText').textContent='D = '+fmt(d);const [lo,hi]=bounds(d);$('stateText').textContent=(lo!==hi?'可在 D='+fmt(d)+' 液體層內上下移動':d===3?'沉在底部':'沿兩層交界活動')+(state.y<lo||state.y>hi?'｜正往目標浮沉；岩石仍會阻擋':'')}
-// All M/V changes are transactional; resolve collisions in connected nearby water.
-// Reposition only inside the new density region, or horizontally while in transit.
+// Growth may push the old hull out of a nearby pocket before expanding.
+// Search exact solid-edge coordinates; every connecting segment must be clear.
+function growthPosition(v){
+ const half=size(v).w/2,oldHalf=size(state.v).w/2,radius=size(v).w;
+ const solids=[...rocks,...items.filter(it=>it.type==='door'&&!it.open).map(it=>({x:it.x-20,y:it.y-20,w:40,h:40}))];
+ const xs=[state.x,half,WIDTH-half,oldHalf,WIDTH-oldHalf,state.x-radius,state.x+radius];
+ const ys=[state.y,60,500,state.y-radius,state.y+radius];
+ for(const r of solids){
+  xs.push(r.x-half,r.x+r.w+half,r.x-oldHalf,r.x+r.w+oldHalf);
+  ys.push(r.y-20,r.y+r.h+20);
+ }
+ const coordinates=(values,center)=>[...new Set(values.filter(n=>Math.abs(n-center)<=radius))].sort((a,b)=>a-b);
+ const xx=coordinates(xs,state.x),yy=coordinates(ys,state.y);
+ const queue=[[xx.indexOf(state.x),yy.indexOf(state.y)]],seen=new Set([queue[0].join(',')]);
+ let best=null,bestDistance=Infinity;
+ for(let i=0;i<queue.length;i++){
+  const [xi,yi]=queue[i],x=xx[xi],y=yy[yi],distance=(x-state.x)**2+(y-state.y)**2;
+  if(distance<bestDistance&&!blocked(x,y,v)){best={x,y};bestDistance=distance}
+  for(const [nx,ny] of [[xi-1,yi],[xi+1,yi],[xi,yi-1],[xi,yi+1]]){
+   if(nx<0||ny<0||nx>=xx.length||ny>=yy.length)continue;
+   const key=nx+','+ny,px=xx[nx],py=yy[ny];
+   if(seen.has(key)||(px-state.x)**2+(py-state.y)**2>radius*radius)continue;
+   if(!clearPath(x,y,px-x,py-y))continue;
+   seen.add(key);queue.push([nx,ny]);
+  }
+ }
+ return best;
+}
+// All M/V changes are transactional. Normal buoyancy resumes after growth relief.
 function changeStats(m,v){
  const next={...state,m,v},d=m/v,s=size(v);let position={x:state.x,y:state.y};
- if(blocked(state.x,state.y,v)){
+ if(v>state.v&&blocked(state.x,state.y,v)){
+  position=growthPosition(v);
+  if(!position){msg.textContent='附近沒有足夠空間，無法放大 V。';return false}
+ }else if(blocked(state.x,state.y,v)){
   const [lo,hi]=bounds(d),inRegion=state.y>=lo&&state.y<=hi;
   const queue=[[0,0]],seen=new Set(['0,0']);let best=null,bestDistance=Infinity;
   // Integer nudges cannot fit fractional positions into an exact-width gap.
