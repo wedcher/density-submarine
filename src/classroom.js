@@ -107,10 +107,20 @@ $('backToPlay').onclick=()=>{
 };
 $('playRestart').onclick=()=>{if(appView==='design'){build();runFingerprint=fingerprint();updateClassroom()}else if(currentGame)playLevel(currentGame.data,currentGame.title);};
 for(const data of EXAMPLE_LEVELS){const button=document.createElement('button');button.textContent=data.name;button.dataset.officialName=data.name;button.onclick=()=>playLevel(data,data.name);$('officialLevels').appendChild(button);}
+const browserLikeId=(()=>{
+ try{
+  const key='density-community-browser-id';
+  let id=localStorage.getItem(key);
+  if(!id){id=crypto.randomUUID();localStorage.setItem(key,id);}
+  return id;
+ }catch(error){return null;}
+})();
+const pendingLikes=new Set();
 async function refreshCommunity(){
+ if(pendingLikes.size)return;
  const revision=++listRevision;$('communityRefresh').disabled=true;$('communityStatus').textContent='正在讀取同學關卡…';
  try{
-  const result=await backendClient.request('list');if(revision!==listRevision)return;
+  const result=await backendClient.request('list',{browserId:browserLikeId});if(revision!==listRevision)return;
   if(!result||result.ok!==true||!Array.isArray(result.levels))throw Error(result?.message||'無法取得同學關卡。');
   const container=$('communityLevels');container.replaceChildren();
   for(const item of result.levels){
@@ -121,11 +131,36 @@ async function refreshCommunity(){
     button.disabled=true;$('communityStatus').textContent='正在載入關卡…';
     try{const loaded=await backendClient.request('get',{id:item.id});if(!loaded||!loaded.ok||!loaded.level)throw Error(loaded?.message||'無法讀取關卡。');if(!playLevel(loaded.level,item.name+'／'+item.author))throw Error(msg.textContent);$('communityStatus').textContent='已載入，可以開始遊玩。';}
     catch(error){$('communityStatus').textContent=error.message;}finally{button.disabled=false;}
-   };container.appendChild(button);
+   };
+   const row=document.createElement('div');row.className='community-level';row.append(button);
+   if(browserLikeId&&Number.isInteger(item.likeCount)&&typeof item.liked==='boolean'){
+    const like=document.createElement('button');like.type='button';like.className='community-like';
+    const renderLike=()=>{
+     like.textContent='👍 '+item.likeCount;
+     like.setAttribute('aria-pressed',String(item.liked));
+     like.setAttribute('aria-label','按讚「'+item.name+'」，共 '+item.likeCount+' 個讚');
+     like.disabled=pendingLikes.has(item.id);
+    };
+    renderLike();
+    like.onclick=async()=>{
+     if(pendingLikes.has(item.id)||$('communityRefresh').disabled&&pendingLikes.size===0)return;
+     pendingLikes.add(item.id);renderLike();
+     $('communityRefresh').disabled=true;
+     try{
+      const result=await backendClient.request('like',{id:item.id,browserId:browserLikeId,liked:!item.liked});
+      if(!result?.ok)throw Error(result?.message||'無法更新按讚。');
+      item.liked=result.liked;item.likeCount=result.likeCount;
+      $('communityStatus').textContent=item.liked?'已按讚。':'已取消讚。';
+     }catch(error){$('communityStatus').textContent='無法確認按讚結果，請稍後重試或重新整理清單。';}
+     finally{pendingLikes.delete(item.id);renderLike();$('communityRefresh').disabled=pendingLikes.size>0;}
+    };
+    row.append(like);
+   }
+   container.append(row);
   }
   $('communityStatus').textContent=result.levels.length?'已更新，共 '+result.levels.length+' 關（新投稿在前）。':'目前還沒有同學投稿，來設計第一關吧！';
  }catch(error){if(revision===listRevision)$('communityStatus').textContent=error.message+' 官方關卡與設計、保存仍可使用。';}
- finally{if(revision===listRevision)$('communityRefresh').disabled=false;}
+ finally{if(revision===listRevision)$('communityRefresh').disabled=pendingLikes.size>0;}
 }
 $('communityRefresh').onclick=refreshCommunity;
 const submissionDialog=$('submissionDialog');
