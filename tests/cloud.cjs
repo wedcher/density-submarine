@@ -22,4 +22,27 @@ test('existing matching spreadsheet and submissions are reused',()=>{const count
 test('nonmatching existing data remains untouched in its original tab',()=>{const b=createBackend();b.props.DENSITY_CLASSROOM_SHEET_ID='test-sheet';b.rows.push(['existing teacher data','keep']);const old=JSON.stringify(b.rows);assert(b.call('list').ok);assert.equal(b.created(),0);assert.equal(JSON.stringify(b.rows),old);assert.equal(b.sheets.length,2);assert(b.call('submit',p()).ok);assert.equal(JSON.stringify(b.rows),old);assert.equal(b.call('list').levels.length,1);assert.equal(b.sheets.length,2);});
 test('unavailable configured spreadsheet is not replaced with a new one',()=>{const b=createBackend();b.props.DENSITY_CLASSROOM_SHEET_ID='unavailable-sheet';assert.equal(b.call('list').ok,false);assert.equal(b.created(),0);assert.equal(b.props.DENSITY_CLASSROOM_SHEET_ID,'unavailable-sheet');});
 test('owner authorization is explicit and missing consent is not swallowed',()=>{const b=createBackend();b.requireAuth(true);assert.throws(()=>b.context.authorizeClassroom(),/AUTHORIZATION_REQUIRED/);assert.equal(b.created(),0);b.requireAuth(false);assert(b.context.authorizeClassroom().ok);assert.equal(b.created(),1);assert.deepEqual(b.authChecks[0],{mode:'FULL',scopes:['https://www.googleapis.com/auth/spreadsheets']});});
+test('likes are shared, browser-specific, and safe to retry',()=>{
+ const b=createBackend(),submission=p(),id=submission.requestId;
+ assert(b.call('submit',submission).ok);
+ const browserId=crypto.randomUUID(),other=crypto.randomUUID();
+ const entry=browserId=>b.call('list',{browserId}).levels[0];
+ const vote=(browserId,liked)=>b.call('like',{id,browserId,liked});
+ assert.equal(entry(browserId).likeCount,0);
+ assert.equal(b.sheets.length,1);
+ assert.equal(b.call('like',{id:'missing',browserId,liked:true}).ok,false);
+ assert.equal(b.call('like',{id,browserId:'invalid',liked:true}).ok,false);
+ b.failFlush();
+ assert.equal(vote(browserId,true).ok,false);
+ assert.deepEqual(vote(browserId,true),{ok:true,liked:true,likeCount:1});
+ assert.equal(entry(browserId).liked,true);
+ assert.equal(entry(other).liked,false);
+ assert.equal(entry(other).likeCount,1);
+ assert.equal(vote(other,true).likeCount,2);
+ assert.deepEqual(vote(browserId,false),{ok:true,liked:false,likeCount:1});
+ assert.equal(vote(browserId,false).likeCount,1);
+ assert.equal(entry(other).liked,true);
+ assert.deepEqual(b.call('get',{id}).level,level);
+ assert.equal(b.rows.length,2);
+});
 console.log('PASS '+checks+' server checks with simulated Google Sheets. Real Google authorization and writes: pending user acceptance.');
