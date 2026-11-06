@@ -6,7 +6,7 @@ window.addEventListener('message',event=>{
  const m=event.data;if(event.source!==window.top||event.origin!==config.origin||!m||m.type!=='density-request'||m.version!==2||m.channel!==config.channel||typeof m.id!=='string')return;
  const reply=result=>window.top.postMessage({type:'density-response',channel:config.channel,id:m.id,result},config.origin);
  const runner=google.script.run.withSuccessHandler(reply).withFailureHandler(()=>reply({ok:false,message:'Google 收件服務無法回覆，請稍後重試。'}));
- if(m.action==='list')runner.listLevels();else if(m.action==='get')runner.getLevel(m.payload);else if(m.action==='submit')runner.submitLevel(m.payload);
+ if(m.action==='list')runner.listLevels(m.payload);else if(m.action==='like')runner.setLevelLike(m.payload);else if(m.action==='get')runner.getLevel(m.payload);else if(m.action==='submit')runner.submitLevel(m.payload);
 });
 window.top.postMessage({type:'density-ready',version:2,channel:config.channel},config.origin);
 </script></body></html>

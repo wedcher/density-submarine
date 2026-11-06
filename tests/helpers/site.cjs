@@ -8,7 +8,7 @@ async function mountBackend(context,backend){
  });
  await context.route('https://test-script.googleusercontent.com/**',route=>{
   const u=new URL(route.request().url()),cfg={origin:u.searchParams.get('origin'),channel:u.searchParams.get('channel')};
-  const stub='<script>window.google={script:{get run(){let success,failure;const c={withSuccessHandler(fn){success=fn;return c},withFailureHandler(fn){failure=fn;return c},listLevels(){window.__testBackend("list").then(success,failure)},getLevel(p){window.__testBackend("get",p).then(success,failure)},submitLevel(p){window.__testBackend("submit",p).then(success,failure)}};return c}}};</script>';
+  const stub='<script>window.google={script:{get run(){let success,failure;const c={withSuccessHandler(fn){success=fn;return c},withFailureHandler(fn){failure=fn;return c},listLevels(p){window.__testBackend("list",p).then(success,failure)},setLevelLike(p){window.__testBackend("like",p).then(success,failure)},getLevel(p){window.__testBackend("get",p).then(success,failure)},submitLevel(p){window.__testBackend("submit",p).then(success,failure)}};return c}}};</script>';
   const html=fs.readFileSync(path.join(__dirname,'../../google-apps-script/Index.html'),'utf8').replace('<?!= bridgeConfig ?>',JSON.stringify(cfg)).replace('<script>',stub+'<script>');
   return route.fulfill({contentType:'text/html',body:html});
  });

@@ -1,6 +1,6 @@
 const COLS=25,ROWS=14,FORMAT='density-submarine-level',RULES='density-lock-v1';
 const EXPECTED_LEVEL_={"grid":{"columns":25,"rows":14,"cellPixels":40,"halfRowsPerCell":2,"fixedRockRows":[0,13]},"liquids":[{"density":0.25,"topHalfRow":2,"bottomHalfRow":8},{"density":0.5,"topHalfRow":8,"bottomHalfRow":14},{"density":1,"topHalfRow":14,"bottomHalfRow":20},{"density":2,"topHalfRow":20,"bottomHalfRow":26}]};
-const BRIDGE_HTML_="<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><base target=\"_top\"></head>\n<body><p>這是密度小艇的投稿與關卡資料服務。請從原本的遊戲網站遊玩與投稿。</p>\n<script>\nconst config = <?!= bridgeConfig ?>;\nwindow.addEventListener('message',event=>{\n const m=event.data;if(event.source!==window.top||event.origin!==config.origin||!m||m.type!=='density-request'||m.version!==2||m.channel!==config.channel||typeof m.id!=='string')return;\n const reply=result=>window.top.postMessage({type:'density-response',channel:config.channel,id:m.id,result},config.origin);\n const runner=google.script.run.withSuccessHandler(reply).withFailureHandler(()=>reply({ok:false,message:'Google 收件服務無法回覆，請稍後重試。'}));\n if(m.action==='list')runner.listLevels();else if(m.action==='get')runner.getLevel(m.payload);else if(m.action==='submit')runner.submitLevel(m.payload);\n});\nwindow.top.postMessage({type:'density-ready',version:2,channel:config.channel},config.origin);\n</script></body></html>\n";
+const BRIDGE_HTML_="<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><base target=\"_top\"></head>\n<body><p>這是密度小艇的投稿與關卡資料服務。請從原本的遊戲網站遊玩與投稿。</p>\n<script>\nconst config = <?!= bridgeConfig ?>;\nwindow.addEventListener('message',event=>{\n const m=event.data;if(event.source!==window.top||event.origin!==config.origin||!m||m.type!=='density-request'||m.version!==2||m.channel!==config.channel||typeof m.id!=='string')return;\n const reply=result=>window.top.postMessage({type:'density-response',channel:config.channel,id:m.id,result},config.origin);\n const runner=google.script.run.withSuccessHandler(reply).withFailureHandler(()=>reply({ok:false,message:'Google 收件服務無法回覆，請稍後重試。'}));\n if(m.action==='list')runner.listLevels(m.payload);else if(m.action==='like')runner.setLevelLike(m.payload);else if(m.action==='get')runner.getLevel(m.payload);else if(m.action==='submit')runner.submitLevel(m.payload);\n});\nwindow.top.postMessage({type:'density-ready',version:2,channel:config.channel},config.origin);\n</script></body></html>\n";
 const MAX_DAILY_SUBMISSIONS=100;
 const SHEET_PROPERTY_='DENSITY_CLASSROOM_SHEET_ID';
 const HEADER_=['投稿編號','投稿時間','關卡名稱（JSON文字）','暱稱（JSON文字）','想法（JSON文字）','內容摘要','關卡JSON_1','關卡JSON_2','關卡JSON_3','關卡JSON_4','關卡JSON_5'];
@@ -33,7 +33,7 @@ function withSheet_(callback){
   if(!sheet)sheet=sheets.find(candidate=>candidate.getLastRow()===0);
   if(!sheet){let suffix=0,name='密度小艇投稿';while(sheets.some(candidate=>candidate.getName()===name))name='密度小艇投稿_'+(++suffix);sheet=book.insertSheet(name);}
   if(sheet.getLastRow()===0){sheet.getRange(1,1,1,HEADER_.length).setValues([HEADER_]);sheet.setFrozenRows(1);}
-  return callback(sheet);
+  return callback(sheet,book);
  }catch(error){console.error(String(error));return {ok:false,message:'Google 收件服務尚未就緒。請先保存關卡，並通知老師完成部署與試算表授權。'};}
  finally{lock.releaseLock();}
 }
@@ -59,12 +59,60 @@ function submitLevel(p){
   });
  }catch(error){return {ok:false,message:'關卡格式或資料不正確，尚未投稿。'};}
 }
-function listLevels(){
- return withSheet_(sheet=>{
+const LIKES_SHEET_='密度小艇按讚';
+const LIKE_HEADER_=['投稿編號','瀏覽器識別碼'];
+function validBrowserId_(id){
+ return typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id);
+}
+function likeSheet_(book){
+ const sheet=book.getSheetByName(LIKES_SHEET_);
+ if(sheet&&sheet.getLastRow()>0&&JSON.stringify(sheet.getRange(1,1,1,2).getValues()[0])!==JSON.stringify(LIKE_HEADER_))throw Error('按讚工作表欄位不符');
+ return sheet;
+}
+function likeRows_(sheet){
+ const last=sheet?sheet.getLastRow():0;
+ return last>1?sheet.getRange(2,1,last-1,2).getValues():[];
+}
+function setLevelLike(p){
+ if(!p||!validBrowserId_(p.browserId)||typeof p.liked!=='boolean'||typeof p.id!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(p.id))return {ok:false,message:'按讚資料不正確。'};
+ return withSheet_((sheet,book)=>{
+  const last=sheet.getLastRow();
+  if(last<2||!sheet.getRange(2,1,last-1,1).getValues().some(row=>row[0]===p.id))return {ok:false,message:'找不到這個關卡，請重新整理清單。'};
+  let likes=likeSheet_(book);
+  const voters=new Set();
+  let existingRow=0;
+  likeRows_(likes).forEach(([id,browserId],index)=>{
+   if(id!==p.id)return;
+   voters.add(browserId);
+   if(browserId===p.browserId)existingRow=index+2;
+  });
+  if(p.liked&&!existingRow){
+   likes=likes||book.insertSheet(LIKES_SHEET_);
+   if(likes.getLastRow()===0)likes.getRange(1,1,1,2).setValues([LIKE_HEADER_]);
+   likes.appendRow([p.id,p.browserId]);
+   voters.add(p.browserId);
+  }else if(!p.liked&&existingRow){
+   likes.deleteRow(existingRow);
+   voters.delete(p.browserId);
+  }
+  SpreadsheetApp.flush();
+  return {ok:true,liked:p.liked,likeCount:voters.size};
+ });
+}
+function listLevels(p){
+ return withSheet_((sheet,book)=>{
+  const browserId=validBrowserId_(p&&p.browserId)?p.browserId:null;
+  const votes=new Map();
+  if(browserId){
+   for(const [id,voter] of likeRows_(likeSheet_(book))){
+    if(!votes.has(id))votes.set(id,new Set());
+    votes.get(id).add(voter);
+   }
+  }
   const last=sheet.getLastRow();if(last<2)return {ok:true,levels:[]};
   const rows=sheet.getRange(2,1,last-1,4).getValues();
   const levels=[];
-  for(const row of rows.reverse()){try{const name=JSON.parse(row[2]),author=JSON.parse(row[3]);if(typeof row[0]==='string'&&typeof name==='string'&&typeof author==='string')levels.push({id:row[0],createdAt:String(row[1]),name,author});}catch(error){}}
+  for(const row of rows.reverse()){try{const name=JSON.parse(row[2]),author=JSON.parse(row[3]);if(typeof row[0]==='string'&&typeof name==='string'&&typeof author==='string')levels.push({id:row[0],createdAt:String(row[1]),name,author,...(browserId?{likeCount:votes.get(row[0])?.size||0,liked:votes.get(row[0])?.has(browserId)||false}:{})});}catch(error){}}
   return {ok:true,levels};
  });
 }
