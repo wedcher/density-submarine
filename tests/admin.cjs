@@ -1,0 +1,22 @@
+const assert=require('node:assert/strict');
+const {createBackend}=require('./helpers/backend.cjs');
+const fs=require('node:fs'),crypto=require('node:crypto');
+const b=createBackend();let active='',effective='teacher@example.com';
+b.context.Session={getActiveUser:()=>({getEmail:()=>active}),getEffectiveUser:()=>({getEmail:()=>effective})};
+for(const identity of ['', 'student@example.com']){active=identity;for(const method of ['adminList','adminSettings','adminModerate'])assert.throws(()=>b.context[method]({}),/Google/);assert.throws(()=>b.context.doGet({parameter:{admin:'1'}}),/Google/);}
+active=effective;
+const level=JSON.parse(fs.readFileSync('levels/01一馬平川.json','utf8'));
+const id=crypto.randomUUID(),browserId=crypto.randomUUID();
+assert(b.call('submit',{level:JSON.stringify(level),author:'學生',note:'',website:'',requestId:id}).ok);
+assert(b.call('list').levels[0].preview);
+assert(b.context.adminList().levels.length===1);
+assert(b.call('like',{id,browserId,liked:true}).ok);
+assert(b.context.adminModerate({ids:[id],action:'hide'}).ok);
+assert.equal(b.call('list').levels.length,0);assert.equal(b.call('get',{id}).ok,false);assert.equal(b.call('like',{id,browserId,liked:true}).ok,false);
+assert(b.context.adminList().levels[0].hidden);
+assert(b.context.adminModerate({ids:[id],action:'restore'}).ok);assert.equal(b.call('list').levels.length,1);
+assert(b.context.adminSettings({likesEnabled:false,adminUrl:'https://script.google.com/macros/s/teacher/exec?admin=1'}).ok);
+assert.equal(b.call('list',{browserId}).levels[0].likeCount,undefined);assert.equal(b.call('like',{id,browserId,liked:true}).ok,false);
+assert(b.context.adminModerate({ids:[id],action:'delete'}).ok);assert(b.context.adminModerate({ids:[id],action:'delete'}).ok);
+assert.equal(b.call('list').levels.length,0);assert.equal(b.sheets.find(s=>s.getName()==='密度小艇按讚').getLastRow(),1);
+console.log('PASS teacher/anonymous/student authorization, previews, hide/get/like denial, restore, likes switch, deletion cleanup and retries');

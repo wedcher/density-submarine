@@ -11,6 +11,10 @@ function authorizeClassroom(){
  return {ok:true};
 }
 function doGet(e){
+ if(e&&e.parameter&&e.parameter.admin==='1'){
+  requireAdmin_();
+  return HtmlService.createHtmlOutput(ADMIN_HTML_).setTitle('密度小艇｜教師管理');
+ }
  const origin=e&&e.parameter&&e.parameter.origin||'https://wedcher.github.io';
  if(origin!=='https://wedcher.github.io'&&!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))throw Error('不支援的遊戲來源');
  const channel=e&&e.parameter&&e.parameter.channel||'';
@@ -73,6 +77,7 @@ function likeRows_(sheet){
 function setLevelLike(p){
  if(!p||!validBrowserId_(p.browserId)||typeof p.liked!=='boolean'||typeof p.id!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(p.id))return {ok:false,message:'按讚資料不正確。'};
  return withSheet_((sheet,book)=>{
+  if(!likesEnabled_()||hiddenIds_(book).has(p.id))return {ok:false,message:'此關卡目前無法按讚。'};
   const last=sheet.getLastRow();
   if(last<2||!sheet.getRange(2,1,last-1,1).getValues().some(row=>row[0]===p.id))return {ok:false,message:'找不到這個關卡，請重新整理清單。'};
   let likes=likeSheet_(book);
@@ -98,7 +103,8 @@ function setLevelLike(p){
 }
 function listLevels(p){
  return withSheet_((sheet,book)=>{
-  const browserId=validBrowserId_(p&&p.browserId)?p.browserId:null;
+  const browserId=likesEnabled_()&&validBrowserId_(p&&p.browserId)?p.browserId:null;
+  const hidden=hiddenIds_(book);
   const votes=new Map();
   if(browserId){
    for(const [id,voter] of likeRows_(likeSheet_(book))){
@@ -107,17 +113,75 @@ function listLevels(p){
    }
   }
   const last=sheet.getLastRow();if(last<2)return {ok:true,levels:[]};
-  const rows=sheet.getRange(2,1,last-1,4).getValues();
+  const rows=rows_(sheet).filter(row=>!hidden.has(row[0]));
   const levels=[];
-  for(const row of rows.reverse()){try{const name=JSON.parse(row[2]),author=JSON.parse(row[3]);if(typeof row[0]==='string'&&typeof name==='string'&&typeof author==='string')levels.push({id:row[0],createdAt:String(row[1]),name,author,...(browserId?{likeCount:votes.get(row[0])?.size||0,liked:votes.get(row[0])?.has(browserId)||false}:{})});}catch(error){}}
-  return {ok:true,levels};
+  for(const row of rows.reverse()){try{const name=JSON.parse(row[2]),author=JSON.parse(row[3]);if(typeof row[0]==='string'&&typeof name==='string'&&typeof author==='string')levels.push({id:row[0],createdAt:String(row[1]),name,author,preview:previewRow_(row),...(browserId?{likeCount:votes.get(row[0])?.size||0,liked:votes.get(row[0])?.has(browserId)||false}:{})});}catch(error){}}
+  return {ok:true,levels,adminUrl:PropertiesService.getScriptProperties().getProperty('DENSITY_ADMIN_URL')||''};
  });
 }
 function getLevel(p){
  if(!p||typeof p.id!=='string'||p.id.length>80)return {ok:false,message:'關卡編號不正確。'};
- return withSheet_(sheet=>{
+ return withSheet_((sheet,book)=>{
+  if(hiddenIds_(book).has(p.id))return {ok:false,message:'此關卡已下架。'};
   const row=rows_(sheet).find(row=>row[0]===p.id);if(!row)return {ok:false,message:'找不到這個關卡，請重新整理清單。'};
   try{const level=JSON.parse(row.slice(6,11).join(''));validateLevel_(level);return {ok:true,level};}
   catch(error){return {ok:false,message:'這個關卡資料有誤，暫時無法載入。'};}
  });
+}
+
+// Every public management RPC checks both identities, including calls through the anonymous deployment.
+function requireAdmin_(){
+ const active=Session.getActiveUser().getEmail();
+ const effective=Session.getEffectiveUser().getEmail();
+ if(!active||!effective||active!==effective)throw Error('請使用部署此服務的 Google 帳號登入教師專用入口。');
+}
+function likesEnabled_(){return PropertiesService.getScriptProperties().getProperty('DENSITY_LIKES_ENABLED')!=='false';}
+function hiddenIds_(book){
+ const sheet=book.getSheetByName('密度小艇下架');
+ if(!sheet)return new Set();
+ if(JSON.stringify(sheet.getRange(1,1,1,1).getValues()[0])!==JSON.stringify(['投稿編號']))throw Error('下架工作表欄位不符');
+ return new Set(sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues().map(row=>row[0]):[]);
+}
+function previewRow_(row){
+ try{const level=JSON.parse(row.slice(6,11).join(''));validateLevel_(level);
+ return {rocks:level.rocks,items:level.items,start:level.start,goal:level.goal,liquids:level.liquids};
+ }catch(error){return null;}
+}
+function adminList(){
+ requireAdmin_();
+ return withSheet_((sheet,book)=>{
+  const hidden=hiddenIds_(book),counts=new Map();
+  for(const [id,voter] of likeRows_(likeSheet_(book))){if(!counts.has(id))counts.set(id,new Set());counts.get(id).add(voter);}
+  const levels=rows_(sheet).reverse().map(row=>({id:row[0],createdAt:String(row[1]),name:displayText_(row[2]),author:displayText_(row[3]),hidden:hidden.has(row[0]),likeCount:counts.get(row[0])?.size||0,preview:previewRow_(row)}));
+  return {ok:true,levels,likesEnabled:likesEnabled_(),adminUrl:PropertiesService.getScriptProperties().getProperty('DENSITY_ADMIN_URL')||''};
+ });
+}
+function adminSettings(p){
+ requireAdmin_();
+ if(!p||typeof p.likesEnabled!=='boolean'||typeof p.adminUrl!=='string'||!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec\?admin=1$/.test(p.adminUrl))throw Error('請填入教師專用部署網址，結尾加上 ?admin=1');
+ return withSheet_(()=>{const props=PropertiesService.getScriptProperties();props.setProperty('DENSITY_LIKES_ENABLED',String(p.likesEnabled));props.setProperty('DENSITY_ADMIN_URL',p.adminUrl);return {ok:true};});
+}
+function adminModerate(p){
+ requireAdmin_();
+ if(!p||!Array.isArray(p.ids)||!p.ids.length||p.ids.length>200||!p.ids.every(id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(id))||!['hide','restore','delete'].includes(p.action))throw Error('管理資料不正確');
+ return withSheet_((sheet,book)=>{
+  const ids=new Set(p.ids),hidden=hiddenIds_(book);
+  let status=book.getSheetByName('密度小艇下架');
+  if(!status){status=book.insertSheet('密度小艇下架');status.appendRow(['投稿編號']);}
+  // Hide first so a partial delete cannot leave a requested deletion public. Retrying is safe.
+  if(p.action!=='restore')for(const id of ids)if(!hidden.has(id)){status.appendRow([id]);hidden.add(id);}
+  if(p.action==='delete'){
+   const likes=likeSheet_(book),votes=likeRows_(likes);
+   for(let i=votes.length-1;i>=0;i--)if(ids.has(votes[i][0]))likes.deleteRow(i+2);
+   const rows=rows_(sheet);
+   for(let i=rows.length-1;i>=0;i--)if(ids.has(rows[i][0]))sheet.deleteRow(i+2);
+  }
+  if(p.action==='restore'||p.action==='delete')for(let i=status.getLastRow();i>=2;i--)if(ids.has(status.getRange(i,1,1,1).getValues()[0][0]))status.deleteRow(i);
+  SpreadsheetApp.flush();return {ok:true};
+ });
+}
+
+function displayText_(value){
+ try{return String(JSON.parse(value));}
+ catch(error){return '資料格式有誤';}
 }

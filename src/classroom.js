@@ -122,7 +122,8 @@ async function refreshCommunity(){
  try{
   const result=await backendClient.request('list',{browserId:browserLikeId});if(revision!==listRevision)return;
   if(!result||result.ok!==true||!Array.isArray(result.levels))throw Error(result?.message||'無法取得同學關卡。');
-  const container=$('communityLevels');container.replaceChildren();
+  const admin=$('teacherAdmin');admin.href=result.adminUrl||BACKEND_URL+'?admin=1';
+   const container=$('communityLevels');container.replaceChildren();
   for(const item of result.levels){
    if(typeof item.id!=='string'||typeof item.name!=='string'||typeof item.author!=='string')continue;
    const button=document.createElement('button'),name=document.createElement('span'),author=document.createElement('small');
@@ -132,7 +133,7 @@ async function refreshCommunity(){
     try{const loaded=await backendClient.request('get',{id:item.id});if(!loaded||!loaded.ok||!loaded.level)throw Error(loaded?.message||'無法讀取關卡。');if(!playLevel(loaded.level,item.name+'／'+item.author))throw Error(msg.textContent);$('communityStatus').textContent='已載入，可以開始遊玩。';}
     catch(error){$('communityStatus').textContent=error.message;}finally{button.disabled=false;}
    };
-   const row=document.createElement('div');row.className='community-level';row.append(button);
+   const row=document.createElement('div');row.className='community-level';row.append(levelPreviewButton(item.preview,item.name),button);
    if(browserLikeId&&Number.isInteger(item.likeCount)&&typeof item.liked==='boolean'){
     const like=document.createElement('button');like.type='button';like.className='community-like';
     const renderLike=()=>{
