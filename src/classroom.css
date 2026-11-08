@@ -138,3 +138,7 @@ body[data-view="design"] #tools .cluster-label{min-width:3em;font-size:clamp(11p
 body[data-view="design"] #materialRow{overflow-x:hidden}
 body[data-view="design"] #tools .editor-cluster{min-width:0}
 body[data-view="design"] #tools button{min-width:0;flex-shrink:1}
+
+
+.community-level{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:stretch}
+.community-level .community-like[aria-pressed="true"]{background:#cdeaff;color:#163c59}

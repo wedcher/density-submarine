@@ -30,7 +30,7 @@ function withSheet_(callback){
   if(!sheet)sheet=sheets.find(candidate=>candidate.getLastRow()===0);
   if(!sheet){let suffix=0,name='密度小艇投稿';while(sheets.some(candidate=>candidate.getName()===name))name='密度小艇投稿_'+(++suffix);sheet=book.insertSheet(name);}
   if(sheet.getLastRow()===0){sheet.getRange(1,1,1,HEADER_.length).setValues([HEADER_]);sheet.setFrozenRows(1);}
-  return callback(sheet);
+  return callback(sheet,book);
  }catch(error){console.error(String(error));return {ok:false,message:'Google 收件服務尚未就緒。請先保存關卡，並通知老師完成部署與試算表授權。'};}
  finally{lock.releaseLock();}
 }
@@ -56,12 +56,60 @@ function submitLevel(p){
   });
  }catch(error){return {ok:false,message:'關卡格式或資料不正確，尚未投稿。'};}
 }
-function listLevels(){
- return withSheet_(sheet=>{
+const LIKES_SHEET_='密度小艇按讚';
+const LIKE_HEADER_=['投稿編號','瀏覽器識別碼'];
+function validBrowserId_(id){
+ return typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id);
+}
+function likeSheet_(book){
+ const sheet=book.getSheetByName(LIKES_SHEET_);
+ if(sheet&&sheet.getLastRow()>0&&JSON.stringify(sheet.getRange(1,1,1,2).getValues()[0])!==JSON.stringify(LIKE_HEADER_))throw Error('按讚工作表欄位不符');
+ return sheet;
+}
+function likeRows_(sheet){
+ const last=sheet?sheet.getLastRow():0;
+ return last>1?sheet.getRange(2,1,last-1,2).getValues():[];
+}
+function setLevelLike(p){
+ if(!p||!validBrowserId_(p.browserId)||typeof p.liked!=='boolean'||typeof p.id!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(p.id))return {ok:false,message:'按讚資料不正確。'};
+ return withSheet_((sheet,book)=>{
+  const last=sheet.getLastRow();
+  if(last<2||!sheet.getRange(2,1,last-1,1).getValues().some(row=>row[0]===p.id))return {ok:false,message:'找不到這個關卡，請重新整理清單。'};
+  let likes=likeSheet_(book);
+  const voters=new Set();
+  let existingRow=0;
+  likeRows_(likes).forEach(([id,browserId],index)=>{
+   if(id!==p.id)return;
+   voters.add(browserId);
+   if(browserId===p.browserId)existingRow=index+2;
+  });
+  if(p.liked&&!existingRow){
+   likes=likes||book.insertSheet(LIKES_SHEET_);
+   if(likes.getLastRow()===0)likes.getRange(1,1,1,2).setValues([LIKE_HEADER_]);
+   likes.appendRow([p.id,p.browserId]);
+   voters.add(p.browserId);
+  }else if(!p.liked&&existingRow){
+   likes.deleteRow(existingRow);
+   voters.delete(p.browserId);
+  }
+  SpreadsheetApp.flush();
+  return {ok:true,liked:p.liked,likeCount:voters.size};
+ });
+}
+function listLevels(p){
+ return withSheet_((sheet,book)=>{
+  const browserId=validBrowserId_(p&&p.browserId)?p.browserId:null;
+  const votes=new Map();
+  if(browserId){
+   for(const [id,voter] of likeRows_(likeSheet_(book))){
+    if(!votes.has(id))votes.set(id,new Set());
+    votes.get(id).add(voter);
+   }
+  }
   const last=sheet.getLastRow();if(last<2)return {ok:true,levels:[]};
   const rows=sheet.getRange(2,1,last-1,4).getValues();
   const levels=[];
-  for(const row of rows.reverse()){try{const name=JSON.parse(row[2]),author=JSON.parse(row[3]);if(typeof row[0]==='string'&&typeof name==='string'&&typeof author==='string')levels.push({id:row[0],createdAt:String(row[1]),name,author});}catch(error){}}
+  for(const row of rows.reverse()){try{const name=JSON.parse(row[2]),author=JSON.parse(row[3]);if(typeof row[0]==='string'&&typeof name==='string'&&typeof author==='string')levels.push({id:row[0],createdAt:String(row[1]),name,author,...(browserId?{likeCount:votes.get(row[0])?.size||0,liked:votes.get(row[0])?.has(browserId)||false}:{})});}catch(error){}}
   return {ok:true,levels};
  });
 }
