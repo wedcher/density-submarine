@@ -218,6 +218,8 @@ body[data-view="design"] #tools button{min-width:0;flex-shrink:1}
 .community-level{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:stretch}
 .community-level .community-like[aria-pressed="true"]{background:#cdeaff;color:#163c59}
 
+.community-level{display:flex;flex-direction:column;align-items:stretch;max-width:320px}.preview-button{padding:0;overflow:hidden}.preview-button canvas,.preview-dialog canvas{display:block;width:100%;height:auto}.preview-dialog{width:min(1100px,90vw)}
+
 </style>
 </head>
 <body>
@@ -228,6 +230,7 @@ body[data-view="design"] #tools button{min-width:0;flex-shrink:1}
 </nav>
 <section id="homePanel" class="classroom-panel">
  <p class="classroom-hint">遊戲與編輯器只提供橫向版面，請將手機橫放使用。按住方向鍵即可持續移動。</p>
+ <p><a id="teacherAdmin" href="#" target="_blank" rel="noopener">教師管理</a></p>
  <h2>官方示範關卡</h2><div id="officialLevels" class="level-list"></div>
  <h2 style="margin-top:14px">同學投稿關卡</h2>
  <button id="communityRefresh">重新整理清單</button><p id="communityStatus" class="classroom-hint" role="status"></p><div id="communityLevels" class="level-list"></div>
@@ -696,6 +699,25 @@ const backendClient=(()=>{
  return {request};
 })();
 
+function drawLevelPreview(canvas,level){
+ canvas.width=1000;canvas.height=560;
+ const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#eef7fb';ctx.fillRect(0,0,1000,560);
+ if(!level){ctx.fillStyle='#333';ctx.font='28px sans-serif';ctx.fillText('預覽暫時無法顯示',30,280);return;}
+ const colors=['#e6f7ff','#bce5f5','#82c4e0','#4899c1'];
+ (level.liquids||[]).forEach((layer,i)=>{ctx.fillStyle=colors[i];ctx.fillRect(0,layer.topHalfRow*20,1000,(layer.bottomHalfRow-layer.topHalfRow)*20);});
+ ctx.fillStyle='#46515d';ctx.fillRect(0,0,1000,40);ctx.fillRect(0,520,1000,40);
+ for(const rock of level.rocks||[])ctx.fillRect(rock.column*40,rock.halfRow*20,rock.widthCells*40,rock.heightHalfRows*20);
+ ctx.font='28px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ for(const item of level.items||[])ctx.fillText(({key:'🔑',door:'🚪',mass:'M'})[item.type]||item.type,item.column*40+20,item.row*40+20);
+ for(const [pos,label] of [[level.start,'🚤'],[level.goal,'🏁']])if(pos)ctx.fillText(label,pos.column*40+20,pos.row*40+20);
+}
+function levelPreviewButton(level,name){
+ const button=document.createElement('button');button.type='button';button.className='preview-button';button.setAttribute('aria-label','放大預覽 '+name);
+ const canvas=document.createElement('canvas');drawLevelPreview(canvas,level);button.append(canvas);
+ button.onclick=()=>{const dialog=document.createElement('dialog');dialog.className='preview-dialog';const title=document.createElement('h2');title.textContent=name;const large=document.createElement('canvas');drawLevelPreview(large,level);const close=document.createElement('button');close.textContent='關閉';close.onclick=()=>dialog.close();dialog.append(title,large,close);dialog.addEventListener('close',()=>dialog.remove());document.body.append(dialog);dialog.showModal();};return button;
+}
+
 let appView='home',savedDesign=null,currentGame=null;
 let qualifiedFingerprint=null,runFingerprint=null,designRevision=0,qualifiedRevision=-1,internalLoad=false;
 let submissionPending=null,submissionBusy=false,listRevision=0;
@@ -820,7 +842,8 @@ async function refreshCommunity(){
  try{
   const result=await backendClient.request('list',{browserId:browserLikeId});if(revision!==listRevision)return;
   if(!result||result.ok!==true||!Array.isArray(result.levels))throw Error(result?.message||'無法取得同學關卡。');
-  const container=$('communityLevels');container.replaceChildren();
+  const admin=$('teacherAdmin');admin.href=result.adminUrl||BACKEND_URL+'?admin=1';
+   const container=$('communityLevels');container.replaceChildren();
   for(const item of result.levels){
    if(typeof item.id!=='string'||typeof item.name!=='string'||typeof item.author!=='string')continue;
    const button=document.createElement('button'),name=document.createElement('span'),author=document.createElement('small');
@@ -830,7 +853,7 @@ async function refreshCommunity(){
     try{const loaded=await backendClient.request('get',{id:item.id});if(!loaded||!loaded.ok||!loaded.level)throw Error(loaded?.message||'無法讀取關卡。');if(!playLevel(loaded.level,item.name+'／'+item.author))throw Error(msg.textContent);$('communityStatus').textContent='已載入，可以開始遊玩。';}
     catch(error){$('communityStatus').textContent=error.message;}finally{button.disabled=false;}
    };
-   const row=document.createElement('div');row.className='community-level';row.append(button);
+   const row=document.createElement('div');row.className='community-level';row.append(levelPreviewButton(item.preview,item.name),button);
    if(browserLikeId&&Number.isInteger(item.likeCount)&&typeof item.liked==='boolean'){
     const like=document.createElement('button');like.type='button';like.className='community-like';
     const renderLike=()=>{

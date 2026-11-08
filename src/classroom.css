@@ -142,3 +142,5 @@ body[data-view="design"] #tools button{min-width:0;flex-shrink:1}
 
 .community-level{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:stretch}
 .community-level .community-like[aria-pressed="true"]{background:#cdeaff;color:#163c59}
+
+.community-level{display:flex;flex-direction:column;align-items:stretch;max-width:320px}.preview-button{padding:0;overflow:hidden}.preview-button canvas,.preview-dialog canvas{display:block;width:100%;height:auto}.preview-dialog{width:min(1100px,90vw)}
