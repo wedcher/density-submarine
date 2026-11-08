@@ -165,10 +165,20 @@ async function refreshCommunity(){
 }
 $('communityRefresh').onclick=refreshCommunity;
 const submissionDialog=$('submissionDialog');
+const submittedSignatures=new Set();
+function submissionSignature(){
+ return JSON.stringify({data:levelData(),author:$('submissionAuthor').value.trim(),note:$('submissionNote').value.trim()});
+}
+function updateSubmissionButton(){
+ const submitted=submittedSignatures.has(submissionSignature());
+ $('submissionSend').disabled=submissionBusy||submitted;
+ $('submissionSend').textContent=submitted?'已投稿':submissionBusy?'正在投稿…':'送出投稿';
+}
+$('submissionForm').addEventListener('input',updateSubmissionButton);
 $('submitBtn').onclick=()=>{
  if(!canSubmit()){msg.textContent='請先成功通關目前設計的關卡，再投稿。';return}
  $('submissionName').value=$('levelName').value;$('submissionAuthor').value=$('authorName').value;
- resetKeyboardMotion();$('submissionStatus').textContent='';submissionDialog.showModal();
+ resetKeyboardMotion();$('submissionStatus').textContent='';updateSubmissionButton();submissionDialog.showModal();
 };
 $('trialSubmit').onclick=()=>$('submitBtn').click();
 $('trialReturn').onclick=()=>toggleMode();
@@ -185,14 +195,16 @@ $('submissionForm').onsubmit=async e=>{
  const data=levelData(),author=$('submissionAuthor').value.trim(),note=$('submissionNote').value.trim();
  if(!author||!data.name.trim()||!data.start||!data.goal||!$('submissionConsent').checked){$('submissionStatus').textContent='請填寫暱稱、關卡名稱並勾選公開同意。';return}
  const signature=JSON.stringify({data,author,note});
+ if(submittedSignatures.has(signature)){updateSubmissionButton();return;}
  if(!submissionPending||submissionPending.signature!==signature)submissionPending={signature,requestId:crypto.randomUUID()};
  const payload={requestId:submissionPending.requestId,author,note,website:$('submissionWebsite').value,level:JSON.stringify(data)};
  submissionBusy=true;$('submissionSend').disabled=true;$('submissionClose').disabled=true;$('submissionStatus').textContent='正在投稿…';
  try{
   const result=await backendClient.request('submit',payload);if(!result||result.ok!==true)throw Error(result?.message||'無法確認投稿成功，請稍後重試。');
+  submittedSignatures.add(signature);
   $('submissionStatus').textContent='投稿成功！收件編號：'+result.receipt+'。同學重新整理清單後即可遊玩。';refreshCommunity();
  }catch(error){$('submissionStatus').textContent=error.message+' 可先匯出 JSON 保存。';}
- finally{submissionBusy=false;$('submissionSend').disabled=false;$('submissionClose').disabled=false;}
+ finally{submissionBusy=false;updateSubmissionButton();$('submissionClose').disabled=false;}
 };
 // Reuse the existing controls so file handling and editor state have one owner.
 const designTop=$('designTop');
